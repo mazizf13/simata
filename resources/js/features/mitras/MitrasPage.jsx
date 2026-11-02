@@ -298,11 +298,16 @@ export const MitrasPage = () => {
                         : 'Belum ada data mitra terdaftar. Klik "Tambah Mitra" untuk mulai mendata mitra statistik.'
                 }
                 pagination={{
-                    currentPage: meta.current_page,
-                    totalPages: meta.last_page,
-                    totalItems: meta.total,
-                    perPage: meta.per_page,
+                    currentPage: meta.current_page || 1,
+                    totalPages: meta.last_page || 1,
+                    totalItems: meta.total || 0,
+                    perPage: perPage,
+                    pageSizeOptions: [10, 15, 25, 50],
                     onPageChange: (newPage) => setPage(newPage),
+                    onPageSizeChange: (newSize) => {
+                        setPerPage(newSize);
+                        setPage(1);
+                    },
                 }}
             />
 

@@ -12,6 +12,7 @@ import { ToastProvider, ConfirmationProvider } from '@idds/react';
 
 import { AuthProvider } from './app/AuthContext';
 import AppRouter from './app/router';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -33,7 +34,9 @@ if (rootElement) {
                     <ConfirmationProvider>
                         <AuthProvider>
                             <BrowserRouter>
-                                <AppRouter />
+                                <ErrorBoundary>
+                                    <AppRouter />
+                                </ErrorBoundary>
                             </BrowserRouter>
                         </AuthProvider>
                     </ConfirmationProvider>

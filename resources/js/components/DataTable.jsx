@@ -105,17 +105,20 @@ export const DataTable = ({
             {pagination && pagination.totalPages > 1 && (
                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
                     <div>
-                        {pagination.total !== undefined && (
+                        {(pagination.total !== undefined || pagination.totalItems !== undefined) && (
                             <span>
-                                Total <strong>{pagination.total}</strong> data tercatat
+                                Total <strong>{pagination.total ?? pagination.totalItems}</strong> data tercatat
                             </span>
                         )}
                     </div>
                     <div>
                         <Pagination
-                            currentPage={pagination.currentPage}
-                            totalPages={pagination.totalPages}
-                            onPageChange={pagination.onPageChange}
+                            currentPage={pagination.currentPage || 1}
+                            totalPages={pagination.totalPages || 1}
+                            pageSize={pagination.perPage || 15}
+                            pageSizeOptions={pagination.pageSizeOptions || [10, 15, 25, 50]}
+                            onPageChange={pagination.onPageChange || (() => {})}
+                            onPageSizeChange={pagination.onPageSizeChange || (() => {})}
                         />
                     </div>
                 </div>

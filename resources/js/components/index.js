@@ -23,4 +23,5 @@ export { default as TaskSelect } from './TaskSelect';
 export { default as TeamSelect } from './TeamSelect';
 export { default as BulkAssignmentTable } from './BulkAssignmentTable';
 export { default as CancelAssignmentModal } from './CancelAssignmentModal';
+export { default as ErrorBoundary } from './ErrorBoundary';
 export { default as SpkStatusBadge } from './SpkStatusBadge';
