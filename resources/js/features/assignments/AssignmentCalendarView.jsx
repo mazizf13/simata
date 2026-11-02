@@ -14,7 +14,7 @@ import {
     IconArrowRight,
 } from '@tabler/icons-react';
 import reportService from '../../services/reportService';
-import { formatRupiah, formatDateRange } from '../../utils/formatters';
+import { formatRupiah, formatDateRange, formatLocalDate } from '../../utils/formatters';
 
 const MONTH_NAMES = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -205,7 +205,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                             }
 
                             const isToday =
-                                cell.dateString === today.toISOString().slice(0, 10);
+                                cell.dateString === formatLocalDate(today);
 
                             // Find events active on this specific date
                             const dayEvents = events.filter((ev) => {

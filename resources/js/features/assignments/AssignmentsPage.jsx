@@ -24,6 +24,7 @@ import {
 import assignmentService from '../../services/assignmentService';
 import masterDataService from '../../services/masterDataService';
 import reportService from '../../services/reportService';
+import { formatDate, formatDateRange } from '../../utils/formatters';
 import AssignmentFormModal from './AssignmentFormModal';
 import BulkAssignmentModal from './BulkAssignmentModal';
 import AssignmentCalendarView from './AssignmentCalendarView';
@@ -202,8 +203,8 @@ export const AssignmentsPage = () => {
             header: 'Jadwal Penugasan',
             render: (row) => (
                 <div className="text-xs text-gray-700">
-                    <div>{row.start_date}</div>
-                    <div className="text-gray-400">s.d. {row.end_date}</div>
+                    <div>{formatDate(row.start_date)}</div>
+                    <div className="text-gray-500">s.d. {formatDate(row.end_date)}</div>
                 </div>
             ),
         },

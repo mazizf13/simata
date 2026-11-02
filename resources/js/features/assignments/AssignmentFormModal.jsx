@@ -13,6 +13,7 @@ import {
 } from '../../components';
 import assignmentService from '../../services/assignmentService';
 import spkService from '../../services/spkService';
+import { formatLocalDate, formatDateRange } from '../../utils/formatters';
 
 export const AssignmentFormModal = ({
     isOpen,
@@ -35,8 +36,8 @@ export const AssignmentFormModal = ({
         task_id: '',
         spk_id: '',
         budget_account_id: '',
-        start_date: new Date().toISOString().slice(0, 10),
-        end_date: new Date().toISOString().slice(0, 10),
+        start_date: formatLocalDate(),
+        end_date: formatLocalDate(),
         volume: 1,
         unit: 'Dokumen',
         unit_price: 0,
@@ -58,8 +59,8 @@ export const AssignmentFormModal = ({
                 task_id: assignment.task_id || '',
                 spk_id: assignment.spk_id || '',
                 budget_account_id: assignment.budget_account_id || '',
-                start_date: assignment.start_date || new Date().toISOString().slice(0, 10),
-                end_date: assignment.end_date || new Date().toISOString().slice(0, 10),
+                start_date: assignment.start_date || formatLocalDate(),
+                end_date: assignment.end_date || formatLocalDate(),
                 volume: assignment.volume || 1,
                 unit: assignment.unit_snapshot || assignment.task?.default_unit || 'Dokumen',
                 unit_price: assignment.unit_price || assignment.task?.default_rate || 0,
@@ -73,8 +74,8 @@ export const AssignmentFormModal = ({
                 task_id: tasks.length > 0 ? tasks[0].id : '',
                 spk_id: '',
                 budget_account_id: '',
-                start_date: new Date().toISOString().slice(0, 10),
-                end_date: new Date().toISOString().slice(0, 10),
+                start_date: formatLocalDate(),
+                end_date: formatLocalDate(),
                 volume: 1,
                 unit: 'Dokumen',
                 unit_price: 50000,
@@ -280,7 +281,7 @@ export const AssignmentFormModal = ({
                                         .map((s) => ({
                                             value: s.id,
                                             label: s.spk_number,
-                                            subtitle: `${s.period_start} s/d ${s.period_end}`,
+                                            subtitle: formatDateRange(s.period_start, s.period_end),
                                             badge: s.status?.label || s.status?.value,
                                         })),
                                 ]}
@@ -317,6 +318,7 @@ export const AssignmentFormModal = ({
                                     onChange={(val) => setFormData((p) => ({ ...p, end_date: val }))}
                                     placeholder="Pilih tanggal selesai..."
                                     minDate={formData.start_date}
+                                    align="right"
                                     error={errors.end_date}
                                     disabled={isLoading}
                                 />

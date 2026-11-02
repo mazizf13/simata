@@ -32,6 +32,7 @@ import {
 import masterDataService from '../../services/masterDataService';
 import assignmentService from '../../services/assignmentService';
 import spkService from '../../services/spkService';
+import { formatDate, formatDateRange } from '../../utils/formatters';
 import SpkFormModal from '../spks/SpkFormModal';
 
 export const MitraDetailPage = () => {
@@ -359,8 +360,8 @@ export const MitraDetailPage = () => {
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4 text-gray-700">
-                                                <div>{item.start_date}</div>
-                                                <div className="text-gray-400">s.d. {item.end_date}</div>
+                                                <div>{formatDate(item.start_date)}</div>
+                                                <div className="text-gray-500">s.d. {formatDate(item.end_date)}</div>
                                             </td>
                                             <td className="py-3 px-4 text-gray-700">
                                                 {item.volume} {item.snapshots?.unit}
@@ -618,10 +619,10 @@ export const MitraDetailPage = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 text-gray-700 text-xs">
-                                                {spk.contract_date}
+                                                {formatDate(spk.contract_date)}
                                             </td>
                                             <td className="px-4 py-3 text-gray-700 text-xs whitespace-nowrap">
-                                                {spk.period_start} s/d {spk.period_end}
+                                                {formatDateRange(spk.period_start, spk.period_end)}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">

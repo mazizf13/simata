@@ -10,6 +10,7 @@ import {
 } from '../../components';
 import { IconUsers, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 import assignmentService from '../../services/assignmentService';
+import { formatLocalDate } from '../../utils/formatters';
 
 export const BulkAssignmentModal = ({
     isOpen,
@@ -24,8 +25,8 @@ export const BulkAssignmentModal = ({
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [taskId, setTaskId] = useState('');
     const [budgetAccountId, setBudgetAccountId] = useState('');
-    const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-    const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+    const [startDate, setStartDate] = useState(formatLocalDate());
+    const [endDate, setEndDate] = useState(formatLocalDate());
     const [mitraAssignments, setMitraAssignments] = useState([]);
     const [simulation, setSimulation] = useState(null);
     const [simLoading, setSimLoading] = useState(false);
@@ -38,8 +39,8 @@ export const BulkAssignmentModal = ({
             const firstTask = tasks.length > 0 ? tasks[0] : null;
             setTaskId(firstTask ? firstTask.id : '');
             setBudgetAccountId('');
-            setStartDate(new Date().toISOString().slice(0, 10));
-            setEndDate(new Date().toISOString().slice(0, 10));
+            setStartDate(formatLocalDate());
+            setEndDate(formatLocalDate());
             setMitraAssignments([]);
             setSimulation(null);
             setErrors({});

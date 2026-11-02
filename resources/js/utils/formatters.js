@@ -45,8 +45,9 @@ export const formatDate = formatDateIndo;
 export const formatDateRange = (startDate, endDate) => {
     if (!startDate && !endDate) return '-';
     if (startDate && !endDate) return formatDateIndo(startDate);
-    if (!startDate && endDate) return `s/d ${formatDateIndo(endDate)}`;
-    return `${formatDateIndo(startDate)} s/d ${formatDateIndo(endDate)}`;
+    if (!startDate && endDate) return `s.d. ${formatDateIndo(endDate)}`;
+    if (startDate === endDate) return formatDateIndo(startDate);
+    return `${formatDateIndo(startDate)} s.d. ${formatDateIndo(endDate)}`;
 };
 
 /**
