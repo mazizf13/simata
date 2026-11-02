@@ -18,7 +18,7 @@ import {
     IconFilter,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
-import MitraFormDrawer from './MitraFormDrawer';
+import MitraFormModal from './MitraFormModal';
 
 export const MitrasPage = () => {
     const navigate = useNavigate();
@@ -306,8 +306,8 @@ export const MitrasPage = () => {
                 }}
             />
 
-            {/* Create / Edit Drawer */}
-            <MitraFormDrawer
+            {/* Create / Edit Modal */}
+            <MitraFormModal
                 isOpen={drawerOpen}
                 onClose={() => {
                     setDrawerOpen(false);

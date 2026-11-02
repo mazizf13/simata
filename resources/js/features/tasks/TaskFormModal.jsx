@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Button, TextField, TextArea } from '@idds/react';
+import { Modal, Button, TextField, TextArea } from '@idds/react';
 import { FormSection, MoneyInput } from '../../components';
 
-export const TaskFormDrawer = ({
+export const TaskFormModal = ({
     isOpen,
     onClose,
     task = null,
@@ -90,15 +90,14 @@ export const TaskFormDrawer = ({
     };
 
     return (
-        <Drawer
-            isOpen={isOpen}
+        <Modal
+            open={isOpen}
             onClose={onClose}
-            position="right"
-            width="xl"
+            size="lg"
             title={isEdit ? 'Ubah Katalog Kegiatan Survei' : 'Tambah Kegiatan Survei Baru'}
         >
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+            <form onSubmit={handleSubmit} className="flex flex-col">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
                     <FormSection
                         title="Identitas Kegiatan"
                         description="Kode dan nama survei/kegiatan statistik BPS."
@@ -248,7 +247,7 @@ export const TaskFormDrawer = ({
                     </FormSection>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+                <div className="pt-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3">
                     <Button
                         hierarchy="secondary"
                         size="md"
@@ -268,8 +267,8 @@ export const TaskFormDrawer = ({
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </Modal>
     );
 };
 
-export default TaskFormDrawer;
+export default TaskFormModal;

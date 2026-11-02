@@ -15,7 +15,7 @@ import {
     IconEye,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
-import TaskFormDrawer from './TaskFormDrawer';
+import TaskFormModal from './TaskFormModal';
 
 export const TasksPage = () => {
     const queryClient = useQueryClient();
@@ -316,8 +316,8 @@ export const TasksPage = () => {
                 }}
             />
 
-            {/* Create / Edit Drawer */}
-            <TaskFormDrawer
+            {/* Create / Edit Modal */}
+            <TaskFormModal
                 isOpen={drawerOpen}
                 onClose={() => {
                     setDrawerOpen(false);

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Drawer, Button, TextField, TextArea } from '@idds/react';
+import { Modal, Button, TextField, TextArea } from '@idds/react';
 import { FormSection } from '../../components';
 
-export const MitraFormDrawer = ({
+export const MitraFormModal = ({
     isOpen,
     onClose,
     mitra = null,
@@ -94,15 +94,14 @@ export const MitraFormDrawer = ({
     };
 
     return (
-        <Drawer
-            isOpen={isOpen}
+        <Modal
+            open={isOpen}
             onClose={onClose}
-            position="right"
-            width="xl"
+            size="lg"
             title={isEdit ? 'Ubah Data Mitra Statistik' : 'Tambah Mitra Statistik Baru'}
         >
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6">
+            <form onSubmit={handleSubmit} className="flex flex-col">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
                     <FormSection
                         title="Identitas & Kode Mitra"
                         description="Kode mitra bersifat unik untuk penatausahaan dan identifikasi administrasi resmi BPS."
@@ -249,7 +248,7 @@ export const MitraFormDrawer = ({
                     </FormSection>
                 </div>
 
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-end gap-3">
+                <div className="pt-4 border-t border-gray-200 bg-white flex items-center justify-end gap-3">
                     <Button
                         hierarchy="secondary"
                         size="md"
@@ -269,8 +268,8 @@ export const MitraFormDrawer = ({
                     </Button>
                 </div>
             </form>
-        </Drawer>
+        </Modal>
     );
 };
 
-export default MitraFormDrawer;
+export default MitraFormModal;
