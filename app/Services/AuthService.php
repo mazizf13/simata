@@ -4,14 +4,19 @@ namespace App\Services;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class AuthService
 {
+    public function __construct(
+        protected UserRepositoryInterface $userRepository
+    ) {}
+
     /**
-     * Authenticate user and regenerate session if available.
+     * Authenticate user, regenerate session, and return user model with relations.
      */
     public function login(LoginRequest $request): User
     {
@@ -21,11 +26,14 @@ class AuthService
             $request->session()->regenerate();
         }
 
+        /** @var User $currentUser */
+        $currentUser = Auth::user();
+        
+        // Eager load roles and teams via repository find
         /** @var User $user */
-        $user = Auth::user();
-        $user->load(['roles', 'teams']);
+        $user = $this->userRepository->findOrFail($currentUser->id, ['*'], ['roles', 'teams']);
 
-        Log::info('User berhasil login ke SIMATA', [
+        Log::info('Pengguna berhasil melakukan otentikasi SIMATA', [
             'user_id' => $user->id,
             'email' => $user->email,
             'ip' => $request->ip(),
@@ -35,7 +43,7 @@ class AuthService
     }
 
     /**
-     * Log user out and invalidate session if available.
+     * Log user out and invalidate current session/tokens safely.
      */
     public function logout(Request $request): void
     {
@@ -53,7 +61,7 @@ class AuthService
             $request->session()->regenerateToken();
         }
 
-        Log::info('User logout dari SIMATA', [
+        Log::info('Pengguna berhasil menutup sesi SIMATA', [
             'user_id' => $userId,
             'ip' => $request->ip(),
         ]);
