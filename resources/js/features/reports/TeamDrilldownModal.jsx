@@ -20,12 +20,12 @@ export const TeamDrilldownModal = ({
         queryKey: ['team-drilldown', team?.team_id, year, month],
         queryFn: async () => {
             const res = await reportService.getTeamDrilldown(team.team_id, { year, month });
-            return res.data;
+            return res.data || res;
         },
         enabled: Boolean(isOpen && team?.team_id),
     });
 
-    const drilldown = drilldownResponse?.data;
+    const drilldown = drilldownResponse?.data || drilldownResponse;
     const tasks = drilldown?.tasks || [];
     const summary = drilldown?.summary;
 

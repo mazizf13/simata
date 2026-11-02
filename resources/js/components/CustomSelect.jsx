@@ -10,6 +10,7 @@ export const CustomSelect = ({
     error = null,
     disabled = false,
     clearable = false,
+    size = 'md', // 'sm' | 'md'
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -90,7 +91,7 @@ export const CustomSelect = ({
                 role="combobox"
                 aria-expanded={isOpen}
                 onClick={() => !disabled && setIsOpen((prev) => !prev)}
-                className={`w-full min-h-[40px] px-3 py-2 text-sm bg-white border rounded-md flex items-center justify-between gap-2 transition-all cursor-pointer select-none outline-none ${
+                className={`w-full ${size === 'sm' ? 'h-9 px-2.5 py-1 text-xs' : 'min-h-[40px] px-3 py-2 text-sm'} bg-white border rounded-md flex items-center justify-between gap-1.5 transition-all cursor-pointer select-none outline-none ${
                     disabled
                         ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200'
                         : isOpen

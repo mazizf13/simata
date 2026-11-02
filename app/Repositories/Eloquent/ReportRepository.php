@@ -433,7 +433,7 @@ class ReportRepository implements ReportRepositoryInterface
 
             $taskDetails[] = [
                 'task_id' => $task->id,
-                'task_code' => $task->task_code,
+                'task_code' => $task->code,
                 'task_name' => $task->name,
                 'unit' => $task->default_unit,
                 'default_rate' => (float) $task->default_rate,
@@ -478,7 +478,7 @@ class ReportRepository implements ReportRepositoryInterface
         $query = TaskAssignment::with([
             'mitra:id,mitra_code,name,district_id',
             'mitra.district:id,name',
-            'task:id,task_code,name,team_id',
+            'task:id,code,name,team_id',
             'task.team:id,code,name',
         ])
         ->where('start_date', '<=', $endOfMonth)
@@ -506,7 +506,7 @@ class ReportRepository implements ReportRepositoryInterface
 
         $query = TaskAssignment::with([
             'mitra:id,mitra_code,name',
-            'task:id,task_code,name,team_id',
+            'task:id,code,name,team_id',
             'task.team:id,code,name',
         ])
         ->whereBetween('start_date', [$startOfMonth, $endOfMonth]);

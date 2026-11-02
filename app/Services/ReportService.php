@@ -286,7 +286,7 @@ class ReportService
         $query = TaskAssignment::with([
             'mitra:id,mitra_code,name,phone,district_id',
             'mitra.district:id,name',
-            'task:id,task_code,name,team_id',
+            'task:id,code,name,team_id',
             'task.team:id,name',
             'budgetAccount:id,code,name',
             'spk:id,spk_number',

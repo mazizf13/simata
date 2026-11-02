@@ -47,16 +47,17 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
                 team_id: selectedTeamId || undefined,
                 search: search || undefined,
             });
-            return res.data;
+            return res.data || res;
         },
     });
 
-    const columnsData = kanbanResponse?.data || {
-        draft: [],
-        pending_approval: [],
-        approved: [],
-        active: [],
-        completed: [],
+    const rawData = kanbanResponse?.data || kanbanResponse;
+    const columnsData = {
+        draft: rawData?.draft || [],
+        pending_approval: rawData?.pending_approval || [],
+        approved: rawData?.approved || [],
+        active: rawData?.active || [],
+        completed: rawData?.completed || [],
     };
 
     return (
@@ -65,8 +66,9 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-gray-700">Periode:</span>
-                    <div className="w-36">
+                    <div className="w-32">
                         <CustomSelect
+                            size="sm"
                             value={String(currentMonth)}
                             onChange={(val) => setCurrentMonth(Number(val))}
                             options={MONTH_NAMES.map((name, idx) => ({
@@ -77,8 +79,9 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
                         />
                     </div>
 
-                    <div className="w-28">
+                    <div className="w-24">
                         <CustomSelect
+                            size="sm"
                             value={String(currentYear)}
                             onChange={(val) => setCurrentYear(Number(val))}
                             options={[
@@ -97,11 +100,12 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Cari kegiatan atau nama mitra..."
-                        className="h-10 px-3 text-sm bg-gray-50 border border-gray-300 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+                        className="h-9 px-3 text-xs bg-gray-50 border border-gray-300 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
                     />
 
                     <div className="w-44">
                         <CustomSelect
+                            size="sm"
                             value={selectedTeamId}
                             onChange={(val) => setSelectedTeamId(val)}
                             options={[

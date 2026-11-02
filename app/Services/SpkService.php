@@ -48,7 +48,7 @@ class SpkService
             'mitra.district',
             'creator:id,name,email',
             'taskAssignments' => function ($query) {
-                $query->with(['task:id,name,task_code', 'budgetAccount:id,account_code,name', 'creator:id,name'])
+                $query->with(['task:id,name,code', 'budgetAccount:id,code,name', 'creator:id,name'])
                     ->orderBy('start_date', 'asc');
             },
         ])->findOrFail($id);

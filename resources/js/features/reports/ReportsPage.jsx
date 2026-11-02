@@ -96,16 +96,18 @@ export const ReportsPage = () => {
                 team_id: selectedTeamId || undefined,
                 limit_status: selectedLimitStatus || undefined,
             });
-            return res.data;
+            return res;
         },
         enabled: activeTab === 'mitras',
     });
 
-    const mitraList = mitraRecapResponse?.data || [];
+    const mitraList = Array.isArray(mitraRecapResponse?.data)
+        ? mitraRecapResponse.data
+        : (Array.isArray(mitraRecapResponse) ? mitraRecapResponse : []);
     const meta = mitraRecapResponse?.meta || {
         current_page: 1,
         last_page: 1,
-        total: 0,
+        total: mitraList.length,
         per_page: 15,
     };
 
@@ -123,12 +125,12 @@ export const ReportsPage = () => {
                 year: selectedYear,
                 month: selectedMonth,
             });
-            return res.data;
+            return res;
         },
         enabled: activeTab === 'teams',
     });
 
-    const teamList = teamRecapResponse?.data?.teams || [];
+    const teamList = teamRecapResponse?.data?.teams || teamRecapResponse?.teams || (Array.isArray(teamRecapResponse?.data) ? teamRecapResponse.data : []);
 
     // Export Handlers
     const handleExportMitra = () => {

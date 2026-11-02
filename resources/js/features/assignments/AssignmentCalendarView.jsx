@@ -60,11 +60,13 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                 team_id: filterTeamId || undefined,
                 task_id: filterTaskId || undefined,
             });
-            return res.data;
+            return res.data || res;
         },
     });
 
-    const events = calendarResponse?.data || [];
+    const events = Array.isArray(calendarResponse)
+        ? calendarResponse
+        : (calendarResponse?.data || []);
 
     // Prev / Next month handlers
     const handlePrevMonth = () => {
@@ -143,6 +145,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                 <div className="flex flex-wrap items-center gap-2">
                     <div className="w-44">
                         <CustomSelect
+                            size="sm"
                             value={filterTeamId}
                             onChange={(val) => setFilterTeamId(val)}
                             options={[
@@ -155,6 +158,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
 
                     <div className="w-56">
                         <CustomSelect
+                            size="sm"
                             value={filterTaskId}
                             onChange={(val) => setFilterTaskId(val)}
                             options={[

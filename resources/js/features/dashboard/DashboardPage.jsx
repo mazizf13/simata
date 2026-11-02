@@ -62,11 +62,11 @@ export const DashboardPage = () => {
                 month: selectedMonth,
                 team_id: selectedTeamId || undefined,
             });
-            return res.data;
+            return res.data || res;
         },
     });
 
-    const stats = dashboardResponse?.data;
+    const stats = dashboardResponse?.data || dashboardResponse;
     const metrics = stats?.metrics || {
         total_active_mitras: 0,
         total_assignments: 0,
@@ -83,7 +83,7 @@ export const DashboardPage = () => {
     return (
         <ContentContainer>
             {/* Page Header */}
-            <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="mb-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
                         Dashboard Operasional & Pemantauan
@@ -93,15 +93,16 @@ export const DashboardPage = () => {
                     </p>
                 </div>
 
-                {/* Filter Toolbar */}
-                <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 shadow-xs">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium px-2">
-                        <IconCalendar size={16} />
+                {/* Filter Toolbar - strictly inline, compact, and non-wrapping */}
+                <div className="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-gray-200 shadow-xs shrink-0 self-start xl:self-auto">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium px-1.5 shrink-0">
+                        <IconCalendar size={15} />
                         <span>Periode:</span>
                     </div>
 
-                    <div className="w-36">
+                    <div className="w-28 shrink-0">
                         <CustomSelect
+                            size="sm"
                             value={String(selectedMonth)}
                             onChange={(val) => setSelectedMonth(Number(val))}
                             options={MONTH_NAMES.map((name, idx) => ({
@@ -112,8 +113,9 @@ export const DashboardPage = () => {
                         />
                     </div>
 
-                    <div className="w-28">
+                    <div className="w-20 shrink-0">
                         <CustomSelect
+                            size="sm"
                             value={String(selectedYear)}
                             onChange={(val) => setSelectedYear(Number(val))}
                             options={[
@@ -125,8 +127,9 @@ export const DashboardPage = () => {
                         />
                     </div>
 
-                    <div className="w-48">
+                    <div className="w-44 shrink-0">
                         <CustomSelect
+                            size="sm"
                             value={selectedTeamId}
                             onChange={(val) => setSelectedTeamId(val)}
                             options={[
