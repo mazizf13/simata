@@ -51,7 +51,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
             label: 'SPK',
             to: '/app/spks',
             icon: IconFileText,
-            show: hasAnyRole(['super_admin', 'admin', 'operator_tim']),
+            show: hasAnyRole(['super_admin', 'admin', 'operator_tim', 'pimpinan']),
         },
         {
             label: 'Rekapitulasi',

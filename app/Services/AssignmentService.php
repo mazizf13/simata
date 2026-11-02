@@ -420,6 +420,19 @@ class AssignmentService
                 'notes' => $data['notes'] ?? $assignment->notes,
             ]);
 
+            if (array_key_exists('spk_id', $data)) {
+                $spkId = $data['spk_id'];
+                if ($spkId) {
+                    $spk = Spk::find($spkId);
+                    if (!$spk || (int) $spk->mitra_id !== (int) $mitraId) {
+                        throw ValidationException::withMessages([
+                            'spk_id' => ['SPK yang dipilih tidak valid atau bukan milik mitra yang bersangkutan.'],
+                        ]);
+                    }
+                }
+                $assignment->spk_id = $spkId;
+            }
+
             if (isset($data['budget_account_id'])) {
                 $account = BudgetAccount::find($data['budget_account_id']);
                 $assignment->budget_account_id = $account?->id;

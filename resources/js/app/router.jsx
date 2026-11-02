@@ -12,6 +12,7 @@ import MitraDetailPage from '../features/mitras/MitraDetailPage';
 import TeamsPage from '../features/teams/TeamsPage';
 import TasksPage from '../features/tasks/TasksPage';
 import SpksPage from '../features/spks/SpksPage';
+import SpkDetailPage from '../features/spks/SpkDetailPage';
 import ReportsPage from '../features/reports/ReportsPage';
 import SettingsPage from '../features/settings/SettingsPage';
 
@@ -36,6 +37,7 @@ export const AppRouter = () => {
                     <Route path="teams" element={<TeamsPage />} />
                     <Route path="tasks" element={<TasksPage />} />
                     <Route path="spks" element={<SpksPage />} />
+                    <Route path="spks/:id" element={<SpkDetailPage />} />
                     <Route path="reports" element={<ReportsPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                 </Route>
