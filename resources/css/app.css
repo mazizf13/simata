@@ -1,0 +1,6 @@
+@import 'tailwindcss';
+@import '@idds/styles/tailwind/css/idds.css';
+
+@source '../../resources/**/*.blade.php';
+@source '../../resources/**/*.jsx';
+@source '../../resources/**/*.js';
