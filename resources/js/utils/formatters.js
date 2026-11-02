@@ -33,6 +33,22 @@ export const formatDateIndo = (date) => {
     }).format(d);
 };
 
+export const formatDate = formatDateIndo;
+
+/**
+ * Format date range into readable Indonesian string (e.g. 1 Mei 2026 s/d 31 Mei 2026)
+ *
+ * @param {string|Date} startDate
+ * @param {string|Date} endDate
+ * @returns {string}
+ */
+export const formatDateRange = (startDate, endDate) => {
+    if (!startDate && !endDate) return '-';
+    if (startDate && !endDate) return formatDateIndo(startDate);
+    if (!startDate && endDate) return `s/d ${formatDateIndo(endDate)}`;
+    return `${formatDateIndo(startDate)} s/d ${formatDateIndo(endDate)}`;
+};
+
 /**
  * Get readable label for system roles
  *

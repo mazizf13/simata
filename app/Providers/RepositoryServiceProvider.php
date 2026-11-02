@@ -6,6 +6,7 @@ use App\Repositories\Contracts\BudgetAccountRepositoryInterface;
 use App\Repositories\Contracts\DistrictRepositoryInterface;
 use App\Repositories\Contracts\MitraRepositoryInterface;
 use App\Repositories\Contracts\RoleRepositoryInterface;
+use App\Repositories\Contracts\SpkRepositoryInterface;
 use App\Repositories\Contracts\TaskAssignmentRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\TeamRepositoryInterface;
@@ -14,6 +15,7 @@ use App\Repositories\Eloquent\BudgetAccountRepository;
 use App\Repositories\Eloquent\DistrictRepository;
 use App\Repositories\Eloquent\MitraRepository;
 use App\Repositories\Eloquent\RoleRepository;
+use App\Repositories\Eloquent\SpkRepository;
 use App\Repositories\Eloquent\TaskAssignmentRepository;
 use App\Repositories\Eloquent\TaskRepository;
 use App\Repositories\Eloquent\TeamRepository;
@@ -35,6 +37,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(TaskRepositoryInterface::class, TaskRepository::class);
         $this->app->bind(MitraRepositoryInterface::class, MitraRepository::class);
         $this->app->bind(TaskAssignmentRepositoryInterface::class, TaskAssignmentRepository::class);
+        $this->app->bind(SpkRepositoryInterface::class, SpkRepository::class);
     }
 
     /**

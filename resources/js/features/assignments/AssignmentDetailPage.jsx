@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ContentContainer,
@@ -25,6 +25,7 @@ import {
     IconCash,
     IconBuildingBank,
     IconHistory,
+    IconFileText,
 } from '@tabler/icons-react';
 import assignmentService from '../../services/assignmentService';
 import masterDataService from '../../services/masterDataService';
@@ -318,11 +319,21 @@ export const AssignmentDetailPage = () => {
                             </div>
                             <div>
                                 <span className="text-xs font-semibold uppercase text-gray-500 block">
-                                    Surat Perintah Kerja (SPK)
+                                    Surat Perjanjian Kerja (SPK)
                                 </span>
-                                <span className="text-sm text-gray-700 mt-1 block">
-                                    {assignment.spk?.spk_number || 'Belum terhubung ke SPK (Phase 4)'}
-                                </span>
+                                {assignment.spk?.id ? (
+                                    <Link
+                                        to={`/app/spks/${assignment.spk.id}`}
+                                        className="text-sm font-semibold text-blue-700 hover:underline mt-1 inline-flex items-center gap-1"
+                                    >
+                                        <IconFileText size={16} />
+                                        {assignment.spk.spk_number}
+                                    </Link>
+                                ) : (
+                                    <span className="text-sm text-gray-500 mt-1 block italic">
+                                        Belum terhubung ke SPK
+                                    </span>
+                                )}
                             </div>
                         </div>
 

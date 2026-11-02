@@ -1,0 +1,82 @@
+import api, { initCsrf } from './api';
+
+export const spkService = {
+    /**
+     * Get paginated SPK list with filtering.
+     */
+    getSpks: async (params = {}) => {
+        return await api.get('/spks', { params });
+    },
+
+    /**
+     * Get single SPK detail with attached tasks and relations.
+     */
+    getSpk: async (id) => {
+        return await api.get(`/spks/${id}`);
+    },
+
+    /**
+     * Create new SPK.
+     */
+    createSpk: async (data) => {
+        await initCsrf();
+        return await api.post('/spks', data);
+    },
+
+    /**
+     * Update draft or active SPK.
+     */
+    updateSpk: async (id, data) => {
+        await initCsrf();
+        return await api.put(`/spks/${id}`, data);
+    },
+
+    /**
+     * Activate SPK (draft -> active).
+     */
+    activateSpk: async (id) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/activate`);
+    },
+
+    /**
+     * Complete SPK (active -> completed).
+     */
+    completeSpk: async (id) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/complete`);
+    },
+
+    /**
+     * Cancel SPK with reason.
+     */
+    cancelSpk: async (id, reason) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/cancel`, { reason });
+    },
+
+    /**
+     * Attach task assignments to an SPK.
+     */
+    attachAssignments: async (id, assignmentIds) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/attach-assignments`, { assignment_ids: assignmentIds });
+    },
+
+    /**
+     * Detach an assignment from an SPK.
+     */
+    detachAssignment: async (id, assignmentId) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/detach-assignment/${assignmentId}`);
+    },
+
+    /**
+     * Get all SPKs belonging to a mitra.
+     */
+    getMitraSpks: async (mitraId, params = {}) => {
+        return await api.get(`/mitras/${mitraId}/spks`, { params });
+    },
+};
+
+export default spkService;

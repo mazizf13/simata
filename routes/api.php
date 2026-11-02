@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\HonorCalculationController;
 use App\Http\Controllers\Api\MitraController;
+use App\Http\Controllers\Api\SpkController;
 use App\Http\Controllers\Api\TaskAssignmentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamController;
@@ -93,6 +94,18 @@ Route::middleware('auth:sanctum')->group(function () {
     // Kalkulasi Honor & Kuota Bulanan Mitra
     Route::get('/mitras/{id}/honor-summary', [HonorCalculationController::class, 'summary']);
     Route::get('/mitras/{id}/honor-breakdown', [HonorCalculationController::class, 'breakdown']);
+
+    // Surat Perjanjian Kerja / SPK
+    Route::get('/spks', [SpkController::class, 'index']);
+    Route::post('/spks', [SpkController::class, 'store']);
+    Route::get('/spks/{id}', [SpkController::class, 'show']);
+    Route::put('/spks/{id}', [SpkController::class, 'update']);
+    Route::post('/spks/{id}/activate', [SpkController::class, 'activate']);
+    Route::post('/spks/{id}/complete', [SpkController::class, 'complete']);
+    Route::post('/spks/{id}/cancel', [SpkController::class, 'cancel']);
+    Route::post('/spks/{id}/attach-assignments', [SpkController::class, 'attachAssignments']);
+    Route::post('/spks/{id}/detach-assignment/{assignmentId}', [SpkController::class, 'detachAssignment']);
+    Route::get('/mitras/{id}/spks', [SpkController::class, 'byMitra']);
 });
 
 // Protected Verification & Role-Testing Endpoints

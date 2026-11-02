@@ -10,6 +10,7 @@ import {
     ErrorState,
     EmptyState,
     AssignmentStatusBadge,
+    SpkStatusBadge,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -24,9 +25,13 @@ import {
     IconBriefcase,
     IconCalendar,
     IconCheck,
+    IconFilePlus,
+    IconEye,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
 import assignmentService from '../../services/assignmentService';
+import spkService from '../../services/spkService';
+import SpkFormModal from '../spks/SpkFormModal';
 
 export const MitraDetailPage = () => {
     const { id } = useParams();
@@ -37,6 +42,7 @@ export const MitraDetailPage = () => {
     const now = new Date();
     const [selectedYear, setSelectedYear] = useState(now.getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+    const [spkModalOpen, setSpkModalOpen] = useState(false);
 
     // Fetch Mitra details
     const {
@@ -90,6 +96,21 @@ export const MitraDetailPage = () => {
         enabled: activeTab === 'honor',
     });
     const breakdown = breakdownResponse?.data || [];
+
+    // Fetch Mitra SPKs
+    const {
+        data: spksResponse,
+        isLoading: spksLoading,
+        refetch: refetchSpks,
+    } = useQuery({
+        queryKey: ['mitra-spks', id],
+        queryFn: async () => {
+            const res = await spkService.getMitraSpks(id);
+            return res.data;
+        },
+        enabled: activeTab === 'spk',
+    });
+    const spks = spksResponse?.data || [];
 
     if (isLoading) {
         return (
@@ -524,13 +545,121 @@ export const MitraDetailPage = () => {
 
             {/* Tab 4: SPK */}
             {activeTab === 'spk' && (
-                <CardContainer>
-                    <EmptyState
-                        title="Belum Ada Dokumen SPK"
-                        description="Modul administrasi penomoran SPK, pencatatan tanggal kontrak, dan pengesahan SPK mitra akan diintegrasikan pada Phase 4."
-                    />
-                </CardContainer>
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 className="text-base font-semibold text-gray-900">
+                                Berkas Kontrak & Surat Perjanjian Kerja (SPK)
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                                Seluruh perjanjian kerja yang pernah diterbitkan untuk mitra statistik ini
+                            </p>
+                        </div>
+                        <Button
+                            hierarchy="primary"
+                            size="sm"
+                            prefixIcon={<IconFilePlus size={16} />}
+                            onClick={() => setSpkModalOpen(true)}
+                        >
+                            Buat SPK Mitra Ini
+                        </Button>
+                    </div>
+
+                    {spksLoading ? (
+                        <CardContainer>
+                            <LoadingState message="Memuat dokumen SPK mitra..." />
+                        </CardContainer>
+                    ) : spks.length === 0 ? (
+                        <CardContainer>
+                            <EmptyState
+                                title="Belum Ada Dokumen SPK"
+                                description="Mitra ini belum memiliki Surat Perjanjian Kerja terdaftar. Klik tombol di bawah untuk membuat SPK baru."
+                                action={
+                                    <Button
+                                        hierarchy="primary"
+                                        size="md"
+                                        prefixIcon={<IconFilePlus size={16} />}
+                                        onClick={() => setSpkModalOpen(true)}
+                                    >
+                                        Buat SPK untuk Mitra Ini
+                                    </Button>
+                                }
+                            />
+                        </CardContainer>
+                    ) : (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xs">
+                            <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-600">Nomor SPK</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-600">Tanggal SPK</th>
+                                        <th className="px-4 py-3 text-left font-medium text-gray-600">Masa Kontrak</th>
+                                        <th className="px-4 py-3 text-center font-medium text-gray-600">Jml Pekerjaan</th>
+                                        <th className="px-4 py-3 text-right font-medium text-gray-600">Total Nilai Kontrak</th>
+                                        <th className="px-4 py-3 text-center font-medium text-gray-600">Status</th>
+                                        <th className="px-4 py-3 text-right font-medium text-gray-600">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-100">
+                                    {spks.map((spk) => (
+                                        <tr key={spk.id} className="hover:bg-gray-50/70">
+                                            <td className="px-4 py-3">
+                                                <button
+                                                    onClick={() => navigate(`/app/spks/${spk.id}`)}
+                                                    className="font-medium text-blue-700 hover:text-blue-900 hover:underline text-left"
+                                                >
+                                                    {spk.spk_number}
+                                                </button>
+                                                <div className="text-xs text-gray-500">
+                                                    {spk.position || spk.occupation || 'Mitra Statistik'}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-700 text-xs">
+                                                {spk.contract_date}
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-700 text-xs whitespace-nowrap">
+                                                {spk.period_start} s/d {spk.period_end}
+                                            </td>
+                                            <td className="px-4 py-3 text-center">
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
+                                                    {spk.tasks_count || 0}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-3 text-right font-semibold text-gray-900 text-xs whitespace-nowrap">
+                                                {formatRp(spk.total_value)}
+                                            </td>
+                                            <td className="px-4 py-3 text-center whitespace-nowrap">
+                                                <SpkStatusBadge status={spk.status} />
+                                            </td>
+                                            <td className="px-4 py-3 text-right whitespace-nowrap">
+                                                <button
+                                                    onClick={() => navigate(`/app/spks/${spk.id}`)}
+                                                    className="p-1 text-gray-500 hover:text-blue-700 hover:bg-gray-100 rounded transition-colors"
+                                                    title="Buka Lembar SPK"
+                                                >
+                                                    <IconEye size={18} />
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             )}
+
+            {/* Modal Create SPK for this mitra */}
+            <SpkFormModal
+                isOpen={spkModalOpen}
+                onClose={() => setSpkModalOpen(false)}
+                initialMitraId={id}
+                onSubmit={async (formData) => {
+                    await spkService.createSpk(formData);
+                    refetchSpks();
+                    setSpkModalOpen(false);
+                }}
+            />
         </ContentContainer>
     );
 };

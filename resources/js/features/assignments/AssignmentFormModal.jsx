@@ -10,6 +10,7 @@ import {
     MitraSelect,
 } from '../../components';
 import assignmentService from '../../services/assignmentService';
+import spkService from '../../services/spkService';
 
 export const AssignmentFormModal = ({
     isOpen,
@@ -25,9 +26,12 @@ export const AssignmentFormModal = ({
     const isEdit = Boolean(assignment);
 
     const [selectedTeamId, setSelectedTeamId] = useState('');
+    const [mitraSpks, setMitraSpks] = useState([]);
+    const [spksLoading, setSpksLoading] = useState(false);
     const [formData, setFormData] = useState({
         mitra_id: '',
         task_id: '',
+        spk_id: '',
         budget_account_id: '',
         start_date: new Date().toISOString().slice(0, 10),
         end_date: new Date().toISOString().slice(0, 10),
@@ -50,6 +54,7 @@ export const AssignmentFormModal = ({
             setFormData({
                 mitra_id: assignment.mitra_id || '',
                 task_id: assignment.task_id || '',
+                spk_id: assignment.spk_id || '',
                 budget_account_id: assignment.budget_account_id || '',
                 start_date: assignment.start_date || new Date().toISOString().slice(0, 10),
                 end_date: assignment.end_date || new Date().toISOString().slice(0, 10),
@@ -64,6 +69,7 @@ export const AssignmentFormModal = ({
             setFormData({
                 mitra_id: mitras.length > 0 ? mitras[0].id : '',
                 task_id: tasks.length > 0 ? tasks[0].id : '',
+                spk_id: '',
                 budget_account_id: '',
                 start_date: new Date().toISOString().slice(0, 10),
                 end_date: new Date().toISOString().slice(0, 10),
@@ -77,6 +83,35 @@ export const AssignmentFormModal = ({
         setErrors({});
         setSimulation(null);
     }, [assignment, isOpen, tasks, mitras]);
+
+    // Fetch SPKs for the selected mitra
+    useEffect(() => {
+        if (!formData.mitra_id) {
+            setMitraSpks([]);
+            return;
+        }
+
+        let isCurrent = true;
+        setSpksLoading(true);
+        spkService
+            .getMitraSpks(formData.mitra_id)
+            .then((res) => {
+                if (isCurrent) {
+                    setMitraSpks(res.data?.data || []);
+                    setSpksLoading(false);
+                }
+            })
+            .catch(() => {
+                if (isCurrent) {
+                    setMitraSpks([]);
+                    setSpksLoading(false);
+                }
+            });
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [formData.mitra_id]);
 
     // When task changes, update default unit, unit_price, budget_account, and team
     const handleTaskChange = (taskId) => {
@@ -215,17 +250,44 @@ export const AssignmentFormModal = ({
 
                     {/* Urutan 3: Mitra */}
                     <FormSection
-                        title="2. Mitra Statistik"
-                        description="Pilih mitra yang akan dibebankan tanggung jawab tugas ini."
+                        title="2. Mitra Statistik & SPK"
+                        description="Pilih mitra yang akan dibebankan tanggung jawab tugas ini dan tautkan dengan SPK jika tersedia."
                     >
                         <MitraSelect
                             label="Mitra Statistik Penugasan *"
                             value={formData.mitra_id}
-                            onChange={(val) => setFormData((p) => ({ ...p, mitra_id: val }))}
+                            onChange={(val) => setFormData((p) => ({ ...p, mitra_id: val, spk_id: '' }))}
                             mitras={mitras}
                             disabled={isLoading}
                             error={errors.mitra_id}
                         />
+
+                        <div className="mt-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Tautkan ke Dokumen SPK (Opsional)
+                            </label>
+                            <select
+                                value={formData.spk_id || ''}
+                                onChange={(e) => setFormData((p) => ({ ...p, spk_id: e.target.value }))}
+                                className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={isLoading || spksLoading || !formData.mitra_id}
+                            >
+                                <option value="">-- Tanpa SPK (Draf Sementara / Tautkan Nanti) --</option>
+                                {mitraSpks
+                                    .filter((s) => s.status?.value !== 'cancelled')
+                                    .map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.spk_number} ({s.period_start} s/d {s.period_end}) — {s.status?.label || s.status?.value}
+                                        </option>
+                                    ))}
+                            </select>
+                            {spksLoading && (
+                                <p className="text-xs text-gray-500 mt-1">Memeriksa dokumen SPK mitra...</p>
+                            )}
+                            {errors.spk_id && (
+                                <p className="text-xs text-red-600 mt-1">{errors.spk_id}</p>
+                            )}
+                        </div>
                     </FormSection>
 
                     {/* Urutan 4: Tanggal Mulai & Selesai */}
