@@ -107,11 +107,13 @@ export const MitraDetailPage = () => {
         queryKey: ['mitra-spks', id],
         queryFn: async () => {
             const res = await spkService.getMitraSpks(id);
-            return res.data;
+            return res.data || res;
         },
         enabled: activeTab === 'spk',
     });
-    const spks = spksResponse?.data || [];
+    const spks = Array.isArray(spksResponse?.data)
+        ? spksResponse.data
+        : (Array.isArray(spksResponse) ? spksResponse : []);
 
     if (isLoading) {
         return (

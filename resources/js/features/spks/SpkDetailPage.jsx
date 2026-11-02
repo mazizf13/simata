@@ -57,12 +57,12 @@ export const SpkDetailPage = () => {
         queryKey: ['spk', id],
         queryFn: async () => {
             const res = await spkService.getSpk(id);
-            return res.data;
+            return res.data || res;
         },
         enabled: Boolean(id),
     });
 
-    const spk = spkResponse?.data;
+    const spk = spkResponse?.data || spkResponse;
 
     // Activate mutation
     const activateMutation = useMutation({

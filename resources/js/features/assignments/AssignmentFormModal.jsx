@@ -99,7 +99,10 @@ export const AssignmentFormModal = ({
             .getMitraSpks(formData.mitra_id)
             .then((res) => {
                 if (isCurrent) {
-                    setMitraSpks(res.data?.data || []);
+                    const spksList = Array.isArray(res.data)
+                        ? res.data
+                        : (Array.isArray(res) ? res : (res.data?.data || []));
+                    setMitraSpks(spksList);
                     setSpksLoading(false);
                 }
             })

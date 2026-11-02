@@ -57,15 +57,17 @@ export const SpksPage = () => {
                 search: search || undefined,
                 status: selectedStatus || undefined,
             });
-            return res.data;
+            return res;
         },
     });
 
-    const spkList = spkResponse?.data || [];
+    const spkList = Array.isArray(spkResponse?.data)
+        ? spkResponse.data
+        : (Array.isArray(spkResponse) ? spkResponse : []);
     const meta = spkResponse?.meta || {
         current_page: 1,
         last_page: 1,
-        total: 0,
+        total: spkList.length,
         per_page: 15,
     };
 
