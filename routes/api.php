@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BudgetAccountController;
+use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DistrictController;
+use App\Http\Controllers\Api\ExportController;
 use App\Http\Controllers\Api\HealthCheckController;
 use App\Http\Controllers\Api\HonorCalculationController;
 use App\Http\Controllers\Api\MitraController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SpkController;
 use App\Http\Controllers\Api\TaskAssignmentController;
 use App\Http\Controllers\Api\TaskController;
@@ -106,6 +109,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/spks/{id}/attach-assignments', [SpkController::class, 'attachAssignments']);
     Route::post('/spks/{id}/detach-assignment/{assignmentId}', [SpkController::class, 'detachAssignment']);
     Route::get('/mitras/{id}/spks', [SpkController::class, 'byMitra']);
+
+    // Dashboard Analytics (Phase 5)
+    Route::get('/dashboard', [DashboardController::class, 'index']);
+
+    // Monitoring & Reporting (Phase 5)
+    Route::get('/reports/monthly', [ReportController::class, 'monthly']);
+    Route::get('/reports/teams', [ReportController::class, 'teams']);
+    Route::get('/reports/teams/{teamId}/drilldown', [ReportController::class, 'teamDrilldown']);
+    Route::get('/reports/calendar', [ReportController::class, 'calendar']);
+    Route::get('/reports/kanban', [ReportController::class, 'kanban']);
+
+    // Exports (Phase 5)
+    Route::get('/exports/monthly', [ExportController::class, 'monthly']);
+    Route::get('/exports/teams', [ExportController::class, 'teams']);
+    Route::get('/exports/assignments', [ExportController::class, 'assignments']);
 });
 
 // Protected Verification & Role-Testing Endpoints

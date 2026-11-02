@@ -15,15 +15,25 @@ import {
     IconEye,
     IconEdit,
     IconBan,
+    IconCalendar,
+    IconLayoutKanban,
+    IconList,
+    IconDownload,
 } from '@tabler/icons-react';
 import assignmentService from '../../services/assignmentService';
 import masterDataService from '../../services/masterDataService';
+import reportService from '../../services/reportService';
 import AssignmentFormModal from './AssignmentFormModal';
 import BulkAssignmentModal from './BulkAssignmentModal';
+import AssignmentCalendarView from './AssignmentCalendarView';
+import AssignmentKanbanView from './AssignmentKanbanView';
 
 export const AssignmentsPage = () => {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    // View state: 'table' | 'calendar' | 'kanban'
+    const [activeView, setActiveView] = useState('table');
 
     // Filters state
     const [page, setPage] = useState(1);
@@ -263,13 +273,32 @@ export const AssignmentsPage = () => {
         },
     ];
 
+    const handleExportAssignments = () => {
+        const today = new Date();
+        const url = reportService.getExportAssignmentsUrl({
+            year: today.getFullYear(),
+            month: today.getMonth() + 1,
+            task_id: selectedTaskId || undefined,
+            status: selectedStatus || undefined,
+        });
+        window.open(url, '_blank');
+    };
+
     return (
         <ContentContainer>
             <PageHeader
                 title="Daftar Penugasan Mitra"
                 subtitle="Monitoring, alokasi tugas sensus & survei, dan validasi batas honor bulanan BPS Kabupaten Mojokerto"
                 actions={
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            hierarchy="secondary"
+                            size="md"
+                            prefixIcon={<IconDownload size={16} />}
+                            onClick={handleExportAssignments}
+                        >
+                            Export Detail (CSV)
+                        </Button>
                         <Button
                             hierarchy="secondary"
                             size="md"
@@ -290,89 +319,141 @@ export const AssignmentsPage = () => {
                 }
             />
 
-            {/* Filter Toolbar */}
-            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs mb-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <div className="md:col-span-2">
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-                            Pencarian Penugasan
-                        </label>
-                        <input
-                            type="text"
-                            value={search}
-                            onChange={(e) => {
-                                setSearch(e.target.value);
-                                setPage(1);
-                            }}
-                            placeholder="Cari nama mitra, kode mitra, kegiatan, MAK..."
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-                            Filter Kegiatan Survei
-                        </label>
-                        <select
-                            value={selectedTaskId}
-                            onChange={(e) => {
-                                setSelectedTaskId(e.target.value);
-                                setPage(1);
-                            }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Kegiatan</option>
-                            {tasks.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
-                            Status Alur Kerja
-                        </label>
-                        <select
-                            value={selectedStatus}
-                            onChange={(e) => {
-                                setSelectedStatus(e.target.value);
-                                setPage(1);
-                            }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="draft">Draf</option>
-                            <option value="pending_approval">Menunggu Persetujuan</option>
-                            <option value="approved">Disetujui</option>
-                            <option value="active">Aktif Berjalan</option>
-                            <option value="completed">Selesai</option>
-                            <option value="cancelled">Dibatalkan</option>
-                        </select>
-                    </div>
-                </div>
+            {/* View Mode Switcher Tabs */}
+            <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-lg px-2 pt-2">
+                <button
+                    onClick={() => setActiveView('table')}
+                    className={`py-3 px-4 font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors ${
+                        activeView === 'table'
+                            ? 'border-blue-700 text-blue-700 bg-blue-50/40 rounded-t'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <IconList size={18} />
+                    Tabel Penugasan
+                </button>
+                <button
+                    onClick={() => setActiveView('calendar')}
+                    className={`py-3 px-4 font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors ${
+                        activeView === 'calendar'
+                            ? 'border-blue-700 text-blue-700 bg-blue-50/40 rounded-t'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <IconCalendar size={18} />
+                    Kalender Penugasan
+                </button>
+                <button
+                    onClick={() => setActiveView('kanban')}
+                    className={`py-3 px-4 font-semibold text-sm border-b-2 flex items-center gap-2 transition-colors ${
+                        activeView === 'kanban'
+                            ? 'border-blue-700 text-blue-700 bg-blue-50/40 rounded-t'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                >
+                    <IconLayoutKanban size={18} />
+                    Papan Kanban Alur Kerja
+                </button>
             </div>
 
-            {/* Assignments Table */}
-            <DataTable
-                columns={columns}
-                data={assignmentsList}
-                isLoading={isLoading}
-                emptyTitle="Data Penugasan Tidak Ditemukan"
-                emptyDescription={
-                    search || selectedTaskId || selectedStatus
-                        ? 'Tidak ada penugasan yang sesuai dengan filter atau kata kunci yang dimasukkan.'
-                        : 'Belum ada data penugasan tercatat. Klik "Tambah Penugasan" atau "Penugasan Kolektif" untuk mulai menugaskan mitra.'
-                }
-                pagination={{
-                    currentPage: meta.current_page,
-                    totalPages: meta.last_page,
-                    totalItems: meta.total,
-                    perPage: meta.per_page,
-                    onPageChange: (newPage) => setPage(newPage),
-                }}
-            />
+            {/* View 1: Table */}
+            {activeView === 'table' && (
+                <>
+                    {/* Filter Toolbar */}
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs mb-4 space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <div className="md:col-span-2">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                                    Pencarian Penugasan
+                                </label>
+                                <input
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    placeholder="Cari nama mitra, kode mitra, kegiatan, MAK..."
+                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                                    Filter Kegiatan Survei
+                                </label>
+                                <select
+                                    value={selectedTaskId}
+                                    onChange={(e) => {
+                                        setSelectedTaskId(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Semua Kegiatan</option>
+                                    {tasks.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                                    Status Alur Kerja
+                                </label>
+                                <select
+                                    value={selectedStatus}
+                                    onChange={(e) => {
+                                        setSelectedStatus(e.target.value);
+                                        setPage(1);
+                                    }}
+                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                >
+                                    <option value="">Semua Status</option>
+                                    <option value="draft">Draf</option>
+                                    <option value="pending_approval">Menunggu Persetujuan</option>
+                                    <option value="approved">Disetujui</option>
+                                    <option value="active">Aktif Berjalan</option>
+                                    <option value="completed">Selesai</option>
+                                    <option value="cancelled">Dibatalkan</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Assignments Table */}
+                    <DataTable
+                        columns={columns}
+                        data={assignmentsList}
+                        isLoading={isLoading}
+                        emptyTitle="Data Penugasan Tidak Ditemukan"
+                        emptyDescription={
+                            search || selectedTaskId || selectedStatus
+                                ? 'Tidak ada penugasan yang sesuai dengan filter atau kata kunci yang dimasukkan.'
+                                : 'Belum ada data penugasan tercatat. Klik "Tambah Penugasan" atau "Penugasan Kolektif" untuk mulai menugaskan mitra.'
+                        }
+                        pagination={{
+                            currentPage: meta.current_page,
+                            totalPages: meta.last_page,
+                            totalItems: meta.total,
+                            perPage: meta.per_page,
+                            onPageChange: (newPage) => setPage(newPage),
+                        }}
+                    />
+                </>
+            )}
+
+            {/* View 2: Calendar */}
+            {activeView === 'calendar' && (
+                <AssignmentCalendarView teams={teams} tasks={tasks} />
+            )}
+
+            {/* View 3: Kanban */}
+            {activeView === 'kanban' && (
+                <AssignmentKanbanView teams={teams} />
+            )}
 
             {/* Single Create / Edit Modal */}
             <AssignmentFormModal
