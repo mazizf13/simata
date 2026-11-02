@@ -1,4 +1,6 @@
 import React from 'react';
+import Combobox from './Combobox';
+import { IconClipboardCheck } from '@tabler/icons-react';
 
 export const TaskSelect = ({
     value,
@@ -7,31 +9,74 @@ export const TaskSelect = ({
     disabled = false,
     error = null,
     label = 'Pilih Kegiatan Survei *',
+    placeholder = '-- Cari dan Pilih Kegiatan Survei / Sensus --',
 }) => {
+    const filterTask = (task, searchLower) => {
+        const name = (task.name || '').toLowerCase();
+        const code = (task.code || '').toLowerCase();
+        const team = (task.team?.name || '').toLowerCase();
+        return name.includes(searchLower) || code.includes(searchLower) || team.includes(searchLower);
+    };
+
+    const renderOption = (task) => {
+        const rateFormatted = Number(task.default_rate || 0).toLocaleString('id-ID');
+        return (
+            <div className="py-0.5">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-gray-900 truncate">
+                        {task.name}
+                    </span>
+                    <span className="font-mono text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200 shrink-0">
+                        {task.code || '-'}
+                    </span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+                    <span>
+                        Tarif: <strong className="text-emerald-700">Rp {rateFormatted}</strong> / {task.default_unit || 'dokumen'}
+                    </span>
+                    {task.team && (
+                        <span className="text-gray-400">
+                            Tim {task.team.name}
+                        </span>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderValue = (task) => {
+        return (
+            <div className="flex items-center justify-between gap-2 truncate">
+                <div className="flex items-center gap-2 truncate">
+                    <IconClipboardCheck size={16} className="text-blue-700 shrink-0" />
+                    <span className="font-semibold text-gray-900 truncate">
+                        {task.name}
+                    </span>
+                </div>
+                <span className="font-mono text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700 border border-gray-200 shrink-0">
+                    {task.code || '-'}
+                </span>
+            </div>
+        );
+    };
+
     return (
-        <div>
-            {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {label}
-                </label>
-            )}
-            <select
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                disabled={disabled}
-                className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                }`}
-            >
-                <option value="">-- Pilih Kegiatan Survei / Sensus --</option>
-                {tasks.map((t) => (
-                    <option key={t.id} value={t.id}>
-                        [{t.code || '-'}] {t.name} (Rp {Number(t.default_rate).toLocaleString('id-ID')} / {t.default_unit})
-                    </option>
-                ))}
-            </select>
-            {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-        </div>
+        <Combobox
+            label={label}
+            value={value}
+            onChange={onChange}
+            options={tasks}
+            placeholder={placeholder}
+            searchPlaceholder="Ketik nama kegiatan survei atau kode..."
+            emptyMessage="Kegiatan tidak ditemukan."
+            disabled={disabled}
+            error={error}
+            filterFn={filterTask}
+            renderOption={renderOption}
+            renderValue={renderValue}
+            getOptionLabel={(t) => `${t.name} [${t.code || ''}]`}
+            getOptionValue={(t) => t.id}
+        />
     );
 };
 

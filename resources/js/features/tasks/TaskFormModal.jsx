@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
-import { FormSection, MoneyInput } from '../../components';
+import { FormSection, MoneyInput, CustomSelect } from '../../components';
 
 export const TaskFormModal = ({
     isOpen,
@@ -128,27 +128,22 @@ export const TaskFormModal = ({
                         </div>
 
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Tim Kerja Penanggung Jawab *
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Tim Kerja Penanggung Jawab *"
                                 value={formData.team_id}
-                                onChange={(e) => handleChange('team_id', e.target.value)}
-                                className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    errors.team_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
+                                onChange={(val) => handleChange('team_id', val)}
+                                placeholder="-- Pilih Tim Kerja --"
+                                options={[
+                                    { value: '', label: '-- Pilih Tim Kerja --' },
+                                    ...teams.map((t) => ({
+                                        value: t.id,
+                                        label: `[${t.code}] ${t.name}`,
+                                        badge: t.code,
+                                    })),
+                                ]}
+                                error={errors.team_id}
                                 disabled={isLoading}
-                            >
-                                <option value="">-- Pilih Tim Kerja --</option>
-                                {teams.map((t) => (
-                                    <option key={t.id} value={t.id}>
-                                        [{t.code}] {t.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.team_id && (
-                                <p className="text-xs text-red-600 mt-1">{errors.team_id}</p>
-                            )}
+                            />
                         </div>
                     </FormSection>
 
@@ -199,22 +194,21 @@ export const TaskFormModal = ({
                         </div>
 
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Akun Anggaran Beban (MAK / Akun)
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Akun Anggaran Beban (MAK / Akun)"
                                 value={formData.default_budget_account_id}
-                                onChange={(e) => handleChange('default_budget_account_id', e.target.value)}
-                                className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(val) => handleChange('default_budget_account_id', val)}
+                                placeholder="-- Tanpa Akun Anggaran Default --"
+                                options={[
+                                    { value: '', label: '-- Tanpa Akun Anggaran Default --' },
+                                    ...budgetAccounts.map((a) => ({
+                                        value: a.id,
+                                        label: `${a.code} — ${a.name}`,
+                                        badge: a.code,
+                                    })),
+                                ]}
                                 disabled={isLoading}
-                            >
-                                <option value="">-- Tanpa Akun Anggaran Default --</option>
-                                {budgetAccounts.map((a) => (
-                                    <option key={a.id} value={a.id}>
-                                        {a.code} — {a.name}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </div>
                     </FormSection>
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
-import { FormSection, MitraSelect } from '../../components';
+import { FormSection, MitraSelect, CustomDatePicker } from '../../components';
 
 export const SpkFormModal = ({
     isOpen,
@@ -158,51 +158,37 @@ export const SpkFormModal = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tanggal SPK *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Tanggal SPK *"
                                     value={formData.contract_date}
-                                    onChange={(e) => handleChange('contract_date', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => handleChange('contract_date', val)}
+                                    placeholder="Pilih tanggal SPK..."
+                                    error={errors.contract_date}
                                     disabled={isLoading}
                                 />
-                                {errors.contract_date && (
-                                    <p className="mt-1 text-xs text-red-600">{errors.contract_date}</p>
-                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Periode Mulai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Periode Mulai *"
                                     value={formData.period_start}
-                                    onChange={(e) => handleChange('period_start', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => handleChange('period_start', val)}
+                                    placeholder="Pilih tanggal mulai..."
+                                    error={errors.period_start}
                                     disabled={isLoading}
                                 />
-                                {errors.period_start && (
-                                    <p className="mt-1 text-xs text-red-600">{errors.period_start}</p>
-                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Periode Selesai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Periode Selesai *"
                                     value={formData.period_end}
-                                    onChange={(e) => handleChange('period_end', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => handleChange('period_end', val)}
+                                    placeholder="Pilih tanggal selesai..."
+                                    minDate={formData.period_start}
+                                    error={errors.period_end}
                                     disabled={isLoading}
                                 />
-                                {errors.period_end && (
-                                    <p className="mt-1 text-xs text-red-600">{errors.period_end}</p>
-                                )}
                             </div>
                         </div>
                     </FormSection>

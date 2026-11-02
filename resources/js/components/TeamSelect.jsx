@@ -1,4 +1,5 @@
 import React from 'react';
+import CustomSelect from './CustomSelect';
 
 export const TeamSelect = ({
     value,
@@ -7,31 +8,27 @@ export const TeamSelect = ({
     disabled = false,
     error = null,
     label = 'Tim Penanggung Jawab *',
+    placeholder = '-- Semua / Pilih Tim Kerja --',
 }) => {
+    const options = [
+        { value: '', label: '-- Semua / Pilih Tim Kerja --' },
+        ...teams.map((t) => ({
+            value: t.id,
+            label: `[${t.code}] ${t.name}`,
+            badge: t.code,
+        })),
+    ];
+
     return (
-        <div>
-            {label && (
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {label}
-                </label>
-            )}
-            <select
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                disabled={disabled}
-                className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    error ? 'border-red-500' : 'border-gray-300'
-                }`}
-            >
-                <option value="">-- Semua / Pilih Tim Kerja --</option>
-                {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                        [{t.code}] {t.name}
-                    </option>
-                ))}
-            </select>
-            {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
-        </div>
+        <CustomSelect
+            label={label}
+            value={value}
+            onChange={onChange}
+            options={options}
+            placeholder={placeholder}
+            disabled={disabled}
+            error={error}
+        />
     );
 };
 

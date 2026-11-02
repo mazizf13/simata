@@ -8,6 +8,7 @@ import {
     DataTable,
     StatusBadge,
     ConfirmDialog,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -249,39 +250,41 @@ export const MitrasPage = () => {
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Kecamatan (3516)
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedDistrict}
-                            onChange={(e) => {
-                                setSelectedDistrict(e.target.value);
+                            onChange={(val) => {
+                                setSelectedDistrict(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Kecamatan (18)</option>
-                            {districts.map((d) => (
-                                <option key={d.id} value={d.id}>
-                                    [{d.code}] {d.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="Semua Kecamatan (18)"
+                            options={[
+                                { value: '', label: 'Semua Kecamatan (18)' },
+                                ...districts.map((d) => ({
+                                    value: d.id,
+                                    label: `[${d.code}] ${d.name}`,
+                                    badge: d.code,
+                                })),
+                            ]}
+                        />
                     </div>
 
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Status Keaktifan
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedStatus}
-                            onChange={(e) => {
-                                setSelectedStatus(e.target.value);
+                            onChange={(val) => {
+                                setSelectedStatus(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="active">Aktif</option>
-                            <option value="inactive">Nonaktif</option>
-                        </select>
+                            placeholder="Semua Status"
+                            options={[
+                                { value: '', label: 'Semua Status' },
+                                { value: 'active', label: 'Aktif' },
+                                { value: 'inactive', label: 'Nonaktif' },
+                            ]}
+                        />
                     </div>
                 </div>
             </div>
