@@ -26,12 +26,25 @@ export const Combobox = ({
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [openUpward, setOpenUpward] = useState(false);
     const [search, setSearch] = useState('');
     const [highlightIndex, setHighlightIndex] = useState(-1);
 
     const containerRef = useRef(null);
     const searchInputRef = useRef(null);
     const listRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 280 && rect.top > 260) {
+                setOpenUpward(true);
+            } else {
+                setOpenUpward(false);
+            }
+        }
+    }, [isOpen]);
 
     // Selected option object
     const selectedOption = useMemo(() => {
@@ -137,7 +150,7 @@ export const Combobox = ({
     };
 
     return (
-        <div className={`relative ${className}`} ref={containerRef}>
+        <div className={`relative ${isOpen ? 'z-50' : 'z-auto'} ${className}`} ref={containerRef}>
             {label && (
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     {label}
@@ -193,7 +206,9 @@ export const Combobox = ({
 
             {/* Dropdown Popover */}
             {isOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden flex flex-col max-h-72">
+                <div className={`absolute left-0 right-0 ${
+                    openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                } z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden flex flex-col max-h-72`}>
                     {/* Search Input Bar */}
                     <div className="p-2 border-b border-gray-100 bg-gray-50 flex items-center gap-2 shrink-0">
                         <IconSearch size={16} className="text-gray-400 shrink-0 ml-1" />

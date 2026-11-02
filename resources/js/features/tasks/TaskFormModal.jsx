@@ -97,7 +97,7 @@ export const TaskFormModal = ({
             title={isEdit ? 'Ubah Katalog Kegiatan Survei' : 'Tambah Kegiatan Survei Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     <FormSection
                         title="Identitas Kegiatan"
                         description="Kode dan nama survei/kegiatan statistik BPS."
@@ -153,31 +153,25 @@ export const TaskFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Satuan Beban Tugas *
-                                </label>
-                                <input
-                                    type="text"
-                                    list="unit-suggestions"
+                                <CustomSelect
+                                    label="Satuan Beban Tugas *"
                                     value={formData.default_unit}
-                                    onChange={(e) => handleChange('default_unit', e.target.value)}
-                                    placeholder="Contoh: Dokumen, Rumah Tangga..."
-                                    className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.default_unit ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    onChange={(val) => handleChange('default_unit', val)}
+                                    placeholder="-- Pilih Satuan Beban --"
+                                    options={[
+                                        { value: 'Dokumen', label: 'Dokumen' },
+                                        { value: 'Rumah Tangga', label: 'Rumah Tangga' },
+                                        { value: 'Responden', label: 'Responden' },
+                                        { value: 'Blok Sensus', label: 'Blok Sensus' },
+                                        { value: 'Perusahaan', label: 'Perusahaan' },
+                                        { value: 'Paket', label: 'Paket' },
+                                        { value: 'Desa', label: 'Desa / Kelurahan' },
+                                        { value: 'Kecamatan', label: 'Kecamatan' },
+                                        { value: 'SLS', label: 'Satuan Lingkungan Setempat (SLS)' },
+                                    ]}
+                                    error={errors.default_unit}
                                     disabled={isLoading}
                                 />
-                                <datalist id="unit-suggestions">
-                                    <option value="Dokumen" />
-                                    <option value="Rumah Tangga" />
-                                    <option value="Responden" />
-                                    <option value="Blok Sensus" />
-                                    <option value="Perusahaan" />
-                                    <option value="Paket" />
-                                </datalist>
-                                {errors.default_unit && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.default_unit}</p>
-                                )}
                             </div>
 
                             <div>
@@ -216,18 +210,17 @@ export const TaskFormModal = ({
                         title="Status & Deskripsi"
                         description="Status keaktifan katalog kegiatan survei."
                     >
-                        <div className="flex items-center gap-2 mb-4">
-                            <input
-                                type="checkbox"
-                                id="task-is-active"
-                                checked={formData.is_active}
-                                onChange={(e) => handleChange('is_active', e.target.checked)}
-                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        <div className="mb-4">
+                            <CustomSelect
+                                label="Status Keaktifan Kegiatan *"
+                                value={formData.is_active ? 1 : 0}
+                                onChange={(val) => handleChange('is_active', Number(val) === 1)}
+                                options={[
+                                    { value: 1, label: 'Aktif (Tersedia untuk pembuatan penugasan baru)', badge: 'Aktif' },
+                                    { value: 0, label: 'Nonaktif (Tidak dapat dipilih dalam penugasan)', badge: 'Nonaktif' },
+                                ]}
                                 disabled={isLoading}
                             />
-                            <label htmlFor="task-is-active" className="text-sm font-medium text-gray-800">
-                                Aktif (Tersedia untuk pembuatan penugasan baru)
-                            </label>
                         </div>
 
                         <TextArea

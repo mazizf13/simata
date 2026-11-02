@@ -13,6 +13,7 @@ export const CustomSelect = ({
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [openUpward, setOpenUpward] = useState(false);
     const containerRef = useRef(null);
 
     // Normalize options
@@ -37,6 +38,18 @@ export const CustomSelect = ({
             normalizedOptions.find((opt) => String(opt.value) === String(value)) || null
         );
     }, [normalizedOptions, value]);
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 240 && rect.top > 240) {
+                setOpenUpward(true);
+            } else {
+                setOpenUpward(false);
+            }
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         const handleClickOutside = (e) => {
@@ -65,7 +78,7 @@ export const CustomSelect = ({
     };
 
     return (
-        <div className={`relative ${className}`} ref={containerRef}>
+        <div className={`relative ${isOpen ? 'z-50' : 'z-auto'} ${className}`} ref={containerRef}>
             {label && (
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     {label}
@@ -120,7 +133,9 @@ export const CustomSelect = ({
             </div>
 
             {isOpen && (
-                <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto p-1 divide-y divide-gray-50">
+                <div className={`absolute left-0 right-0 ${
+                    openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                } z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden max-h-60 overflow-y-auto p-1 divide-y divide-gray-50`}>
                     {normalizedOptions.length === 0 ? (
                         <div className="py-4 px-3 text-center text-xs text-gray-500">
                             Tidak ada pilihan tersedia

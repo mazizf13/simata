@@ -217,7 +217,7 @@ export const AssignmentFormModal = ({
             title={isEdit ? 'Ubah Data Penugasan Mitra' : 'Tambah Penugasan Mitra Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     {/* Urutan 1 & 2: Tim & Kegiatan */}
                     <FormSection
                         title="1. Kegiatan & Tim Penanggung Jawab"

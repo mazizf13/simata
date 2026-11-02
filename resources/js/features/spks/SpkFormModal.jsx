@@ -121,7 +121,7 @@ export const SpkFormModal = ({
                     </div>
                 )}
 
-                <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1">
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto px-1 pb-44">
                     {/* Section 1: Mitra & Nomor SPK */}
                     <FormSection
                         title="Informasi Mitra & Nomor Kontrak"

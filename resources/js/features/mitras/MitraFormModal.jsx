@@ -101,7 +101,7 @@ export const MitraFormModal = ({
             title={isEdit ? 'Ubah Data Mitra Statistik' : 'Tambah Mitra Statistik Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     <FormSection
                         title="Identitas & Kode Mitra"
                         description="Kode mitra bersifat unik untuk penatausahaan dan identifikasi administrasi resmi BPS."

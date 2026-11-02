@@ -32,8 +32,21 @@ export const CustomDatePicker = ({
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [openUpward, setOpenUpward] = useState(false);
     const [viewMode, setViewMode] = useState('days'); // 'days' | 'months' | 'years'
     const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const spaceBelow = window.innerHeight - rect.bottom;
+            if (spaceBelow < 350 && rect.top > 320) {
+                setOpenUpward(true);
+            } else {
+                setOpenUpward(false);
+            }
+        }
+    }, [isOpen]);
 
     // Parse current value or fallback to today
     const parsedDate = useMemo(() => {
@@ -186,7 +199,7 @@ export const CustomDatePicker = ({
     };
 
     return (
-        <div className={`relative ${className}`} ref={containerRef}>
+        <div className={`relative ${isOpen ? 'z-50' : 'z-auto'} ${className}`} ref={containerRef}>
             {label && (
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                     {label}
@@ -238,7 +251,9 @@ export const CustomDatePicker = ({
 
             {/* Custom Calendar Popover */}
             {isOpen && (
-                <div className="absolute left-0 mt-1.5 z-50 bg-white border border-gray-200 rounded-lg shadow-xl p-3.5 w-72 sm:w-80 select-none">
+                <div className={`absolute left-0 ${
+                    openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+                } z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-3.5 w-72 sm:w-80 select-none`}>
                     {/* Header: Month & Year navigation */}
                     <div className="flex items-center justify-between mb-3 border-b border-gray-100 pb-2.5">
                         <button
