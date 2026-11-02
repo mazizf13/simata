@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BudgetAccountController;
 use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\HealthCheckController;
+use App\Http\Controllers\Api\HonorCalculationController;
 use App\Http\Controllers\Api\MitraController;
+use App\Http\Controllers\Api\TaskAssignmentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamController;
 use App\Http\Responses\ApiResponse;
@@ -73,6 +75,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/districts/active', [DistrictController::class, 'active']);
     Route::get('/districts', [DistrictController::class, 'index']);
     Route::get('/districts/{id}', [DistrictController::class, 'show']);
+
+    // Penugasan Mitra / Task Assignments
+    Route::post('/assignments/simulate-limit', [TaskAssignmentController::class, 'simulateLimit']);
+    Route::post('/assignments/bulk-simulate', [TaskAssignmentController::class, 'bulkSimulate']);
+    Route::post('/assignments/bulk', [TaskAssignmentController::class, 'bulkStore']);
+    Route::get('/assignments', [TaskAssignmentController::class, 'index']);
+    Route::post('/assignments', [TaskAssignmentController::class, 'store']);
+    Route::get('/assignments/{id}', [TaskAssignmentController::class, 'show']);
+    Route::put('/assignments/{id}', [TaskAssignmentController::class, 'update']);
+    Route::post('/assignments/{id}/submit', [TaskAssignmentController::class, 'submit']);
+    Route::post('/assignments/{id}/approve', [TaskAssignmentController::class, 'approve']);
+    Route::post('/assignments/{id}/activate', [TaskAssignmentController::class, 'activate']);
+    Route::post('/assignments/{id}/complete', [TaskAssignmentController::class, 'complete']);
+    Route::post('/assignments/{id}/cancel', [TaskAssignmentController::class, 'cancel']);
+
+    // Kalkulasi Honor & Kuota Bulanan Mitra
+    Route::get('/mitras/{id}/honor-summary', [HonorCalculationController::class, 'summary']);
+    Route::get('/mitras/{id}/honor-breakdown', [HonorCalculationController::class, 'breakdown']);
 });
 
 // Protected Verification & Role-Testing Endpoints

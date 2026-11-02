@@ -34,6 +34,22 @@ class Mitra extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<TaskAssignment>
+     */
+    public function taskAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<Spk>
+     */
+    public function spks(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Spk::class);
+    }
+
+    /**
      * Scope only active mitras.
      */
     public function scopeActive(Builder $query): Builder
