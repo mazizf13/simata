@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LoadingState, ErrorState } from '../../components';
+import { LoadingState, ErrorState, CustomSelect } from '../../components';
 import { Modal, Button } from '@idds/react';
 import {
     IconChevronLeft,
@@ -141,31 +141,29 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <select
-                        value={filterTeamId}
-                        onChange={(e) => setFilterTeamId(e.target.value)}
-                        className="h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Tim</option>
-                        {teams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-44">
+                        <CustomSelect
+                            value={filterTeamId}
+                            onChange={(val) => setFilterTeamId(val)}
+                            options={[
+                                { value: '', label: 'Semua Tim' },
+                                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+                            ]}
+                            placeholder="Semua Tim"
+                        />
+                    </div>
 
-                    <select
-                        value={filterTaskId}
-                        onChange={(e) => setFilterTaskId(e.target.value)}
-                        className="h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs truncate"
-                    >
-                        <option value="">Semua Kegiatan</option>
-                        {tasks.map((task) => (
-                            <option key={task.id} value={task.id}>
-                                {task.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-56">
+                        <CustomSelect
+                            value={filterTaskId}
+                            onChange={(val) => setFilterTaskId(val)}
+                            options={[
+                                { value: '', label: 'Semua Kegiatan' },
+                                ...tasks.map((task) => ({ value: String(task.id), label: task.name })),
+                            ]}
+                            placeholder="Semua Kegiatan"
+                        />
+                    </div>
                 </div>
             </div>
 

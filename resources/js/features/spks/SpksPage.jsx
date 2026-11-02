@@ -6,6 +6,7 @@ import {
     PageHeader,
     DataTable,
     SpkStatusBadge,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -264,17 +265,20 @@ export const SpksPage = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <select
-                        value={selectedStatus}
-                        onChange={(e) => handleStatusFilterChange(e.target.value)}
-                        className="h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Status</option>
-                        <option value="draft">Draf</option>
-                        <option value="active">Aktif Berjalan</option>
-                        <option value="completed">Selesai</option>
-                        <option value="cancelled">Dibatalkan</option>
-                    </select>
+                    <div className="w-48">
+                        <CustomSelect
+                            value={selectedStatus}
+                            onChange={(val) => handleStatusFilterChange(val)}
+                            placeholder="Semua Status"
+                            options={[
+                                { value: '', label: 'Semua Status' },
+                                { value: 'draft', label: 'Draf' },
+                                { value: 'active', label: 'Aktif Berjalan' },
+                                { value: 'completed', label: 'Selesai' },
+                                { value: 'cancelled', label: 'Dibatalkan' },
+                            ]}
+                        />
+                    </div>
 
                     <Button
                         hierarchy="secondary"

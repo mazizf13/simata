@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
 import { FormSection, MitraSelect, CustomDatePicker } from '../../components';
+import { masterDataService } from '../../services/masterDataService';
 
 export const SpkFormModal = ({
     isOpen,
@@ -9,8 +11,28 @@ export const SpkFormModal = ({
     onSubmit,
     isLoading = false,
     initialMitraId = null,
+    mitras = null,
 }) => {
     const isEdit = Boolean(spk);
+
+    // Fetch active mitras if not provided or empty
+    const { data: fetchedMitras = [] } = useQuery({
+        queryKey: ['mitras', 'all-active'],
+        queryFn: async () => {
+            const res = await masterDataService.getMitras({ per_page: 200, status: 'active' });
+            return res.data || [];
+        },
+        enabled: isOpen && (!mitras || mitras.length === 0),
+    });
+
+    const mitrasList = mitras && mitras.length > 0 ? mitras : fetchedMitras;
+
+    const availableMitras = useMemo(() => {
+        if (spk?.mitra && !mitrasList.some((m) => m.id === spk.mitra.id)) {
+            return [spk.mitra, ...mitrasList];
+        }
+        return mitrasList;
+    }, [mitrasList, spk]);
 
     const [formData, setFormData] = useState({
         mitra_id: '',
@@ -99,10 +121,14 @@ export const SpkFormModal = ({
         try {
             await onSubmit(formData);
         } catch (err) {
-            if (err.response?.data?.errors) {
+            if (err.errors) {
+                setErrors(err.errors);
+            } else if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors);
             } else {
-                setErrors({ general: err.response?.data?.message || 'Terjadi kesalahan sistem' });
+                setErrors({
+                    general: err.message || err.response?.data?.message || 'Terjadi kesalahan sistem',
+                });
             }
         }
     };
@@ -129,18 +155,14 @@ export const SpkFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Pilih Mitra Statistik *
-                                </label>
                                 <MitraSelect
+                                    label="Pilih Mitra Statistik *"
                                     value={formData.mitra_id}
                                     onChange={(val) => handleChange('mitra_id', val)}
                                     disabled={isLoading || (isEdit && spk?.tasks_count > 0)}
                                     error={errors.mitra_id}
+                                    mitras={availableMitras}
                                 />
-                                {errors.mitra_id && (
-                                    <p className="mt-1 text-xs text-red-600">{errors.mitra_id}</p>
-                                )}
                             </div>
 
                             <div>

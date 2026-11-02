@@ -340,21 +340,27 @@ export const SettingsPage = () => {
                         description="Parameter pembatasan transaksi penugasan dan honor bulanan per mitra (Operator Logika: OR)."
                     >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <TextField
-                                label="Maksimal Jumlah Penugasan / Bulan"
-                                value="10"
-                                onChange={() => {}}
-                                disabled={true}
-                                helperText="Standar resmi BPS Mojokerto: 10 penugasan"
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Maksimal Jumlah Penugasan / Bulan
+                                </label>
+                                <input
+                                    type="text"
+                                    value="10"
+                                    disabled={true}
+                                    className="w-full h-10 px-3 py-2 text-sm bg-gray-100 text-gray-700 font-mono border border-gray-200 rounded-md cursor-not-allowed"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">Standar resmi BPS Mojokerto: 10 penugasan</p>
+                            </div>
 
-                            <MoneyInput
-                                label="Maksimal Total Honor / Bulan"
-                                value={4000000}
-                                onChange={() => {}}
-                                disabled={true}
-                                helperText="Standar resmi BPS Mojokerto: Rp 4.000.000"
-                            />
+                            <div>
+                                <MoneyInput
+                                    label="Maksimal Total Honor / Bulan"
+                                    value={4000000}
+                                    disabled={true}
+                                    helperText="Standar resmi BPS Mojokerto: Rp 4.000.000"
+                                />
+                            </div>
                         </div>
 
                         <div className="pt-2">

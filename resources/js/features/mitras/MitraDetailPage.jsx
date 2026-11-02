@@ -11,6 +11,7 @@ import {
     EmptyState,
     AssignmentStatusBadge,
     SpkStatusBadge,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -400,22 +401,22 @@ export const MitraDetailPage = () => {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                                className="h-9 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-                            >
-                                {months.map((m) => (
-                                    <option key={m.val} value={m.val}>
-                                        {m.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="w-36">
+                                <CustomSelect
+                                    value={String(selectedMonth)}
+                                    onChange={(val) => setSelectedMonth(Number(val))}
+                                    options={months.map((m) => ({
+                                        value: String(m.val),
+                                        label: m.label,
+                                    }))}
+                                    placeholder="Pilih Bulan"
+                                />
+                            </div>
                             <input
                                 type="number"
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="h-9 w-24 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 font-mono"
+                                className="h-10 w-24 px-3 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                             />
                         </div>
                     </div>
@@ -654,6 +655,7 @@ export const MitraDetailPage = () => {
                 isOpen={spkModalOpen}
                 onClose={() => setSpkModalOpen(false)}
                 initialMitraId={id}
+                mitras={mitra ? [mitra] : []}
                 onSubmit={async (formData) => {
                     await spkService.createSpk(formData);
                     refetchSpks();

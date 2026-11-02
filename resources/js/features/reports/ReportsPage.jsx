@@ -7,6 +7,7 @@ import {
     DataTable,
     LoadingState,
     ErrorState,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -320,20 +321,17 @@ export const ReportsPage = () => {
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Bulan Pembebanan
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedMonth}
-                                    onChange={(e) => {
-                                        setSelectedMonth(Number(e.target.value));
+                                    onChange={(val) => {
+                                        setSelectedMonth(Number(val));
                                         setPage(1);
                                     }}
-                                    className="w-full h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    {MONTH_NAMES.map((name, idx) => (
-                                        <option key={idx + 1} value={idx + 1}>
-                                            {name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    options={MONTH_NAMES.map((name, idx) => ({
+                                        value: idx + 1,
+                                        label: name,
+                                    }))}
+                                />
                             </div>
 
                             {/* Year */}
@@ -341,18 +339,18 @@ export const ReportsPage = () => {
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Tahun
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedYear}
-                                    onChange={(e) => {
-                                        setSelectedYear(Number(e.target.value));
+                                    onChange={(val) => {
+                                        setSelectedYear(Number(val));
                                         setPage(1);
                                     }}
-                                    className="w-full h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value={2025}>2025</option>
-                                    <option value={2026}>2026</option>
-                                    <option value={2027}>2027</option>
-                                </select>
+                                    options={[
+                                        { value: 2025, label: '2025' },
+                                        { value: 2026, label: '2026' },
+                                        { value: 2027, label: '2027' },
+                                    ]}
+                                />
                             </div>
 
                             {/* District */}
@@ -360,21 +358,22 @@ export const ReportsPage = () => {
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Kecamatan
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedDistrictId}
-                                    onChange={(e) => {
-                                        setSelectedDistrictId(e.target.value);
+                                    onChange={(val) => {
+                                        setSelectedDistrictId(val);
                                         setPage(1);
                                     }}
-                                    className="w-full h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Semua Kecamatan</option>
-                                    {districts.map((d) => (
-                                        <option key={d.id} value={d.id}>
-                                            {d.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Semua Kecamatan"
+                                    options={[
+                                        { value: '', label: 'Semua Kecamatan' },
+                                        ...districts.map((d) => ({
+                                            value: d.id,
+                                            label: d.name,
+                                            badge: d.code,
+                                        })),
+                                    ]}
+                                />
                             </div>
 
                             {/* Status Limit */}
@@ -382,21 +381,22 @@ export const ReportsPage = () => {
                                 <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Status Batas
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedLimitStatus}
-                                    onChange={(e) => {
-                                        setSelectedLimitStatus(e.target.value);
+                                    onChange={(val) => {
+                                        setSelectedLimitStatus(val);
                                         setPage(1);
                                     }}
-                                    className="w-full h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Semua Status</option>
-                                    <option value="aman">Aman</option>
-                                    <option value="near_limit">Mendekati Batas</option>
-                                    <option value="limit_task">Batas Tugas Tercapai</option>
-                                    <option value="limit_honor">Batas Honor Tercapai</option>
-                                    <option value="limit_both">Batas Tugas & Honor Tercapai</option>
-                                </select>
+                                    placeholder="Semua Status"
+                                    options={[
+                                        { value: '', label: 'Semua Status' },
+                                        { value: 'aman', label: 'Aman' },
+                                        { value: 'near_limit', label: 'Mendekati Batas' },
+                                        { value: 'limit_task', label: 'Batas Tugas Tercapai' },
+                                        { value: 'limit_honor', label: 'Batas Honor Tercapai' },
+                                        { value: 'limit_both', label: 'Batas Tugas & Honor Tercapai' },
+                                    ]}
+                                />
                             </div>
                         </div>
 
@@ -448,29 +448,30 @@ export const ReportsPage = () => {
                 <div className="space-y-4">
                     {/* Period Toolbar */}
                     <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <span className="text-xs font-semibold text-gray-700">Pilih Periode Pembebanan:</span>
-                            <select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                                className="h-9 px-2.5 text-xs bg-white border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                {MONTH_NAMES.map((name, idx) => (
-                                    <option key={idx + 1} value={idx + 1}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="w-40">
+                                <CustomSelect
+                                    value={selectedMonth}
+                                    onChange={(val) => setSelectedMonth(Number(val))}
+                                    options={MONTH_NAMES.map((name, idx) => ({
+                                        value: idx + 1,
+                                        label: name,
+                                    }))}
+                                />
+                            </div>
 
-                            <select
-                                value={selectedYear}
-                                onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="h-9 px-2.5 text-xs bg-white border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                                <option value={2025}>2025</option>
-                                <option value={2026}>2026</option>
-                                <option value={2027}>2027</option>
-                            </select>
+                            <div className="w-28">
+                                <CustomSelect
+                                    value={selectedYear}
+                                    onChange={(val) => setSelectedYear(Number(val))}
+                                    options={[
+                                        { value: 2025, label: '2025' },
+                                        { value: 2026, label: '2026' },
+                                        { value: 2027, label: '2027' },
+                                    ]}
+                                />
+                            </div>
                         </div>
 
                         <div className="text-xs text-gray-500">

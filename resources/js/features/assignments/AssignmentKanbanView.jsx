@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LoadingState, ErrorState } from '../../components';
+import { LoadingState, ErrorState, CustomSelect } from '../../components';
 import {
     IconCalendar,
     IconSearch,
@@ -64,28 +64,31 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
             {/* Filter Toolbar */}
             <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-700">Periode Pembebanan:</span>
-                    <select
-                        value={currentMonth}
-                        onChange={(e) => setCurrentMonth(Number(e.target.value))}
-                        className="h-9 px-2.5 text-xs bg-white border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {MONTH_NAMES.map((name, idx) => (
-                            <option key={idx + 1} value={idx + 1}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+                    <span className="text-xs font-semibold text-gray-700">Periode:</span>
+                    <div className="w-36">
+                        <CustomSelect
+                            value={String(currentMonth)}
+                            onChange={(val) => setCurrentMonth(Number(val))}
+                            options={MONTH_NAMES.map((name, idx) => ({
+                                value: String(idx + 1),
+                                label: name,
+                            }))}
+                            placeholder="Pilih Bulan"
+                        />
+                    </div>
 
-                    <select
-                        value={currentYear}
-                        onChange={(e) => setCurrentYear(Number(e.target.value))}
-                        className="h-9 px-2.5 text-xs bg-white border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value={2025}>2025</option>
-                        <option value={2026}>2026</option>
-                        <option value={2027}>2027</option>
-                    </select>
+                    <div className="w-28">
+                        <CustomSelect
+                            value={String(currentYear)}
+                            onChange={(val) => setCurrentYear(Number(val))}
+                            options={[
+                                { value: '2025', label: '2025' },
+                                { value: '2026', label: '2026' },
+                                { value: '2027', label: '2027' },
+                            ]}
+                            placeholder="Tahun"
+                        />
+                    </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -94,21 +97,20 @@ export const AssignmentKanbanView = ({ teams = [] }) => {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Cari kegiatan atau nama mitra..."
-                        className="h-9 px-3 text-xs bg-gray-50 border border-gray-300 rounded focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
+                        className="h-10 px-3 text-sm bg-gray-50 border border-gray-300 rounded-md focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-56"
                     />
 
-                    <select
-                        value={selectedTeamId}
-                        onChange={(e) => setSelectedTeamId(e.target.value)}
-                        className="h-9 px-2.5 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Tim</option>
-                        {teams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-44">
+                        <CustomSelect
+                            value={selectedTeamId}
+                            onChange={(val) => setSelectedTeamId(val)}
+                            options={[
+                                { value: '', label: 'Semua Tim' },
+                                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+                            ]}
+                            placeholder="Semua Tim"
+                        />
+                    </div>
                 </div>
             </div>
 

@@ -9,6 +9,7 @@ import {
     CardContainer,
     LoadingState,
     ErrorState,
+    CustomSelect,
 } from '../../components';
 import {
     IconUsers,
@@ -99,40 +100,42 @@ export const DashboardPage = () => {
                         <span>Periode:</span>
                     </div>
 
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {MONTH_NAMES.map((name, idx) => (
-                            <option key={idx + 1} value={idx + 1}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-36">
+                        <CustomSelect
+                            value={String(selectedMonth)}
+                            onChange={(val) => setSelectedMonth(Number(val))}
+                            options={MONTH_NAMES.map((name, idx) => ({
+                                value: String(idx + 1),
+                                label: name,
+                            }))}
+                            placeholder="Pilih Bulan"
+                        />
+                    </div>
 
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value={2025}>2025</option>
-                        <option value={2026}>2026</option>
-                        <option value={2027}>2027</option>
-                    </select>
+                    <div className="w-28">
+                        <CustomSelect
+                            value={String(selectedYear)}
+                            onChange={(val) => setSelectedYear(Number(val))}
+                            options={[
+                                { value: '2025', label: '2025' },
+                                { value: '2026', label: '2026' },
+                                { value: '2027', label: '2027' },
+                            ]}
+                            placeholder="Tahun"
+                        />
+                    </div>
 
-                    <select
-                        value={selectedTeamId}
-                        onChange={(e) => setSelectedTeamId(e.target.value)}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Tim Kerja</option>
-                        {teams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-48">
+                        <CustomSelect
+                            value={selectedTeamId}
+                            onChange={(val) => setSelectedTeamId(val)}
+                            options={[
+                                { value: '', label: 'Semua Tim Kerja' },
+                                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+                            ]}
+                            placeholder="Semua Tim Kerja"
+                        />
+                    </div>
                 </div>
             </div>
 
