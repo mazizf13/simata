@@ -7,6 +7,7 @@ import LoginPage from '../features/auth/LoginPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 import AssignmentsPage from '../features/assignments/AssignmentsPage';
 import MitrasPage from '../features/mitras/MitrasPage';
+import MitraDetailPage from '../features/mitras/MitraDetailPage';
 import TeamsPage from '../features/teams/TeamsPage';
 import TasksPage from '../features/tasks/TasksPage';
 import SpksPage from '../features/spks/SpksPage';
@@ -29,6 +30,7 @@ export const AppRouter = () => {
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="assignments" element={<AssignmentsPage />} />
                     <Route path="mitras" element={<MitrasPage />} />
+                    <Route path="mitras/:id" element={<MitraDetailPage />} />
                     <Route path="teams" element={<TeamsPage />} />
                     <Route path="tasks" element={<TasksPage />} />
                     <Route path="spks" element={<SpksPage />} />

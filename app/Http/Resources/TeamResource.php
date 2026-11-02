@@ -20,6 +20,9 @@ class TeamResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'is_active' => (bool) $this->is_active,
+            'users_count' => $this->whenCounted('users'),
+            'users' => UserResource::collection($this->whenLoaded('users')),
+            'tasks_count' => $this->whenCounted('tasks'),
         ];
     }
 }

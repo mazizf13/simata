@@ -1,7 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BudgetAccountController;
+use App\Http\Controllers\Api\DistrictController;
 use App\Http\Controllers\Api\HealthCheckController;
+use App\Http\Controllers\Api\MitraController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\TeamController;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -25,6 +30,49 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
     });
+});
+
+// Master Data & Protected Business Routes
+Route::middleware('auth:sanctum')->group(function () {
+    // Mitra Statistik
+    Route::get('/mitras', [MitraController::class, 'index']);
+    Route::post('/mitras', [MitraController::class, 'store']);
+    Route::get('/mitras/{id}', [MitraController::class, 'show']);
+    Route::put('/mitras/{id}', [MitraController::class, 'update']);
+    Route::delete('/mitras/{id}', [MitraController::class, 'deactivate']);
+    Route::post('/mitras/{id}/deactivate', [MitraController::class, 'deactivate']);
+
+    // Kegiatan Survei / Tasks
+    Route::get('/tasks/active', [TaskController::class, 'active']);
+    Route::get('/tasks', [TaskController::class, 'index']);
+    Route::post('/tasks', [TaskController::class, 'store']);
+    Route::get('/tasks/{id}', [TaskController::class, 'show']);
+    Route::put('/tasks/{id}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{id}', [TaskController::class, 'deactivate']);
+    Route::post('/tasks/{id}/deactivate', [TaskController::class, 'deactivate']);
+
+    // Tim Kerja / Teams
+    Route::get('/teams/active', [TeamController::class, 'active']);
+    Route::get('/teams', [TeamController::class, 'index']);
+    Route::post('/teams', [TeamController::class, 'store']);
+    Route::get('/teams/{id}', [TeamController::class, 'show']);
+    Route::put('/teams/{id}', [TeamController::class, 'update']);
+    Route::delete('/teams/{id}', [TeamController::class, 'deactivate']);
+    Route::post('/teams/{id}/deactivate', [TeamController::class, 'deactivate']);
+
+    // Akun Anggaran / Budget Accounts
+    Route::get('/budget-accounts/active', [BudgetAccountController::class, 'active']);
+    Route::get('/budget-accounts', [BudgetAccountController::class, 'index']);
+    Route::post('/budget-accounts', [BudgetAccountController::class, 'store']);
+    Route::get('/budget-accounts/{id}', [BudgetAccountController::class, 'show']);
+    Route::put('/budget-accounts/{id}', [BudgetAccountController::class, 'update']);
+    Route::delete('/budget-accounts/{id}', [BudgetAccountController::class, 'deactivate']);
+    Route::post('/budget-accounts/{id}/deactivate', [BudgetAccountController::class, 'deactivate']);
+
+    // Kecamatan / Districts
+    Route::get('/districts/active', [DistrictController::class, 'active']);
+    Route::get('/districts', [DistrictController::class, 'index']);
+    Route::get('/districts/{id}', [DistrictController::class, 'show']);
 });
 
 // Protected Verification & Role-Testing Endpoints
