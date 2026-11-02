@@ -1,26 +1,211 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     ContentContainer,
     PageHeader,
     TableToolbar,
     DataTable,
     StatusBadge,
+    ConfirmDialog,
 } from '../../components';
 import { Button } from '@idds/react';
-import { IconUserPlus, IconFileSpreadsheet } from '@tabler/icons-react';
+import {
+    IconUserPlus,
+    IconEye,
+    IconEdit,
+    IconUserOff,
+    IconFilter,
+} from '@tabler/icons-react';
+import masterDataService from '../../services/masterDataService';
+import MitraFormModal from './MitraFormModal';
 
 export const MitrasPage = () => {
-    const [search, setSearch] = useState('');
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
 
+    // Filters and pagination state
+    const [page, setPage] = useState(1);
+    const [search, setSearch] = useState('');
+    const [selectedDistrict, setSelectedDistrict] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('');
+    const [perPage, setPerPage] = useState(15);
+
+    // Modal / Drawer state
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [selectedMitra, setSelectedMitra] = useState(null);
+    const [deactivateDialog, setDeactivateDialog] = useState({
+        open: false,
+        mitra: null,
+    });
+
+    // Fetch active districts for filter & form
+    const { data: districtsData } = useQuery({
+        queryKey: ['districts', 'active'],
+        queryFn: async () => {
+            const res = await masterDataService.getActiveDistricts();
+            return res.data || [];
+        },
+    });
+    const districts = districtsData || [];
+
+    // Fetch mitras with pagination & filters
+    const {
+        data: mitrasResponse,
+        isLoading,
+        isError,
+        refetch,
+    } = useQuery({
+        queryKey: ['mitras', { page, search, selectedDistrict, selectedStatus, perPage }],
+        queryFn: async () => {
+            const params = {
+                page,
+                per_page: perPage,
+                search: search.trim() || undefined,
+                district_id: selectedDistrict || undefined,
+                status: selectedStatus || undefined,
+            };
+            return await masterDataService.getMitras(params);
+        },
+        placeholderData: (prev) => prev,
+    });
+
+    const mitrasList = mitrasResponse?.data || [];
+    const meta = mitrasResponse?.meta || { current_page: 1, last_page: 1, total: 0 };
+
+    // Mutations
+    const createMutation = useMutation({
+        mutationFn: (data) => masterDataService.createMitra(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['mitras'] });
+            setDrawerOpen(false);
+            setSelectedMitra(null);
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }) => masterDataService.updateMitra(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['mitras'] });
+            setDrawerOpen(false);
+            setSelectedMitra(null);
+        },
+    });
+
+    const deactivateMutation = useMutation({
+        mutationFn: (id) => masterDataService.deactivateMitra(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['mitras'] });
+            setDeactivateDialog({ open: false, mitra: null });
+        },
+    });
+
+    const handleOpenCreate = () => {
+        setSelectedMitra(null);
+        setDrawerOpen(true);
+    };
+
+    const handleOpenEdit = (mitra) => {
+        setSelectedMitra(mitra);
+        setDrawerOpen(true);
+    };
+
+    const handleFormSubmit = async (formData) => {
+        if (selectedMitra) {
+            return await updateMutation.mutateAsync({
+                id: selectedMitra.id,
+                data: formData,
+            });
+        } else {
+            return await createMutation.mutateAsync(formData);
+        }
+    };
+
+    const handleConfirmDeactivate = async () => {
+        if (!deactivateDialog.mitra) return;
+        await deactivateMutation.mutateAsync(deactivateDialog.mitra.id);
+    };
+
+    // Columns configuration
     const columns = [
-        { key: 'mitra_code', header: 'Kode Mitra' },
-        { key: 'name', header: 'Nama Lengkap' },
-        { key: 'district', header: 'Kecamatan (3516)' },
-        { key: 'phone', header: 'No. Kontak' },
+        {
+            key: 'mitra_code',
+            header: 'Kode Mitra',
+            render: (row) => (
+                <div className="font-mono text-xs font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded border border-gray-200 inline-block">
+                    {row.mitra_code}
+                </div>
+            ),
+        },
+        {
+            key: 'name',
+            header: 'Nama Lengkap',
+            render: (row) => (
+                <div>
+                    <div className="font-medium text-gray-900 hover:text-blue-700 cursor-pointer" onClick={() => navigate(`/app/mitras/${row.id}`)}>
+                        {row.name}
+                    </div>
+                    {row.occupation && (
+                        <div className="text-xs text-gray-500">{row.occupation}</div>
+                    )}
+                </div>
+            ),
+        },
+        {
+            key: 'district',
+            header: 'Kecamatan (3516)',
+            render: (row) => (
+                <span className="text-gray-700">
+                    {row.district ? `[${row.district.code}] ${row.district.name}` : '-'}
+                </span>
+            ),
+        },
+        {
+            key: 'phone',
+            header: 'No. Kontak',
+            render: (row) => (
+                <span className="text-gray-700 font-mono text-xs">{row.phone || '-'}</span>
+            ),
+        },
         {
             key: 'status',
             header: 'Status',
             render: (row) => <StatusBadge status={row.status} />,
+        },
+        {
+            key: 'actions',
+            header: 'Aksi',
+            align: 'right',
+            render: (row) => (
+                <div className="flex items-center justify-end gap-1.5">
+                    <button
+                        type="button"
+                        onClick={() => navigate(`/app/mitras/${row.id}`)}
+                        className="p-1.5 text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="Lihat Detail Profil"
+                    >
+                        <IconEye size={16} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleOpenEdit(row)}
+                        className="p-1.5 text-gray-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors"
+                        title="Ubah Data Mitra"
+                    >
+                        <IconEdit size={16} />
+                    </button>
+                    {row.status === 'active' && (
+                        <button
+                            type="button"
+                            onClick={() => setDeactivateDialog({ open: true, mitra: row })}
+                            className="p-1.5 text-gray-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
+                            title="Nonaktifkan Mitra"
+                        >
+                            <IconUserOff size={16} />
+                        </button>
+                    )}
+                </div>
+            ),
         },
     ];
 
@@ -28,41 +213,125 @@ export const MitrasPage = () => {
         <ContentContainer>
             <PageHeader
                 title="Data Mitra Statistik"
-                subtitle="Master data terpusat mitra statistik BPS Kabupaten Mojokerto"
+                subtitle="Master data terpusat mitra survei dan sensus BPS Kabupaten Mojokerto (Kode Wilayah 3516)"
                 actions={
                     <Button
                         hierarchy="primary"
                         size="md"
                         prefixIcon={<IconUserPlus size={16} />}
-                        disabled={true}
+                        onClick={handleOpenCreate}
                     >
                         Tambah Mitra
                     </Button>
                 }
             />
 
-            <TableToolbar
-                searchValue={search}
-                onSearchChange={setSearch}
-                searchPlaceholder="Cari berdasarkan nama mitra atau kode..."
-                actions={
-                    <Button
-                        hierarchy="secondary"
-                        size="sm"
-                        prefixIcon={<IconFileSpreadsheet size={16} />}
-                        disabled={true}
-                    >
-                        Import Excel
-                    </Button>
-                }
-            />
+            {/* Filters Toolbar */}
+            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs mb-4 space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <div className="md:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                            Pencarian Mitra
+                        </label>
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => {
+                                setSearch(e.target.value);
+                                setPage(1);
+                            }}
+                            placeholder="Cari berdasarkan nama, kode mitra, telepon, dll..."
+                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
 
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                            Kecamatan (3516)
+                        </label>
+                        <select
+                            value={selectedDistrict}
+                            onChange={(e) => {
+                                setSelectedDistrict(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Semua Kecamatan (18)</option>
+                            {districts.map((d) => (
+                                <option key={d.id} value={d.id}>
+                                    [{d.code}] {d.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
+                            Status Keaktifan
+                        </label>
+                        <select
+                            value={selectedStatus}
+                            onChange={(e) => {
+                                setSelectedStatus(e.target.value);
+                                setPage(1);
+                            }}
+                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Semua Status</option>
+                            <option value="active">Aktif</option>
+                            <option value="inactive">Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Mitras Table */}
             <DataTable
                 columns={columns}
-                data={[]}
-                isLoading={false}
-                emptyTitle="Belum Ada Data Mitra"
-                emptyDescription="Master profil mitra, pencarian nama/kode, filter 18 kecamatan, dan histori penugasan disiapkan untuk implementasi Phase 2 (Master Data)."
+                data={mitrasList}
+                isLoading={isLoading}
+                emptyTitle="Data Mitra Tidak Ditemukan"
+                emptyDescription={
+                    search || selectedDistrict || selectedStatus
+                        ? 'Tidak ada data mitra yang sesuai dengan filter atau kata kunci yang dimasukkan.'
+                        : 'Belum ada data mitra terdaftar. Klik "Tambah Mitra" untuk mulai mendata mitra statistik.'
+                }
+                pagination={{
+                    currentPage: meta.current_page,
+                    totalPages: meta.last_page,
+                    totalItems: meta.total,
+                    perPage: meta.per_page,
+                    onPageChange: (newPage) => setPage(newPage),
+                }}
+            />
+
+            {/* Create / Edit Modal */}
+            <MitraFormModal
+                isOpen={drawerOpen}
+                onClose={() => {
+                    setDrawerOpen(false);
+                    setSelectedMitra(null);
+                }}
+                mitra={selectedMitra}
+                districts={districts}
+                onSubmit={handleFormSubmit}
+                isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+
+            {/* Deactivate Confirmation Dialog */}
+            <ConfirmDialog
+                open={deactivateDialog.open}
+                onClose={() => setDeactivateDialog({ open: false, mitra: null })}
+                onConfirm={handleConfirmDeactivate}
+                title="Konfirmasi Nonaktifkan Mitra"
+                description={`Apakah Anda yakin ingin menonaktifkan status mitra ${
+                    deactivateDialog.mitra?.name || ''
+                } (${deactivateDialog.mitra?.mitra_code || ''})? Mitra yang dinonaktifkan tidak akan dapat dipilih pada penugasan survei baru.`}
+                confirmText="Ya, Nonaktifkan"
+                cancelText="Batal"
+                danger={true}
+                isLoading={deactivateMutation.isPending}
             />
         </ContentContainer>
     );

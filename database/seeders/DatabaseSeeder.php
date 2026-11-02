@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleAndTeamSeeder::class,
+            MasterDataSeeder::class,
         ]);
     }
 }
