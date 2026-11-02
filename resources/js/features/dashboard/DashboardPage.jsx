@@ -295,7 +295,7 @@ export const DashboardPage = () => {
 
                                 {mitrasNearLimit.length === 0 ? (
                                     <div className="p-8 text-center text-sm text-gray-500">
-                                        Tidak ada mitra yang mendekati batas ( $\ge$ 8 tugas atau $\ge$ Rp 3.200.000 ) pada periode ini.
+                                        Tidak ada mitra yang mendekati batas (≥ 8 tugas atau ≥ Rp 3.200.000) pada periode ini.
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">

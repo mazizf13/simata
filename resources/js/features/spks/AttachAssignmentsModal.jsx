@@ -88,6 +88,7 @@ export const AttachAssignmentsModal = ({
 
     return (
         <Modal
+            open={isOpen}
             isOpen={isOpen}
             onClose={onClose}
             title={`Lampirkan Penugasan ke SPK: ${spk?.spk_number || ''}`}

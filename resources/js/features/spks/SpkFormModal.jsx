@@ -135,6 +135,7 @@ export const SpkFormModal = ({
 
     return (
         <Modal
+            open={isOpen}
             isOpen={isOpen}
             onClose={onClose}
             title={isEdit ? 'Ubah Surat Perjanjian Kerja (SPK)' : 'Buat Surat Perjanjian Kerja (SPK) Baru'}

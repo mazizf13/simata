@@ -9,6 +9,8 @@ export const DataTable = ({
     isLoading = false,
     emptyTitle = 'Tidak Ada Data',
     emptyDescription = 'Belum ada data untuk ditampilkan pada tabel ini.',
+    emptyAction = null,
+    emptyState = null,
     pagination,
     onRowClick,
     keyExtractor = (row, index) => row.id ?? index,
@@ -51,8 +53,9 @@ export const DataTable = ({
                             <tr>
                                 <td colSpan={columns.length} className="p-8">
                                     <EmptyState
-                                        title={emptyTitle}
-                                        description={emptyDescription}
+                                        title={emptyState?.title || emptyTitle}
+                                        description={emptyState?.description || emptyDescription}
+                                        action={emptyState?.action || emptyAction}
                                         className="border-none py-8"
                                     />
                                 </td>

@@ -273,6 +273,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
             {/* Event Detail Modal */}
             {selectedEvent && (
                 <Modal
+                    open={Boolean(selectedEvent)}
                     isOpen={Boolean(selectedEvent)}
                     onClose={() => setSelectedEvent(null)}
                     title="Detail Pelaksanaan Tugas"

@@ -31,6 +31,7 @@ export const TeamDrilldownModal = ({
 
     return (
         <Modal
+            open={isOpen}
             isOpen={isOpen}
             onClose={onClose}
             title={`Rincian Beban Kerja: ${team?.team_name || ''}`}

@@ -31,6 +31,7 @@ export const CancelSpkModal = ({
 
     return (
         <Modal
+            open={isOpen}
             isOpen={isOpen}
             onClose={onClose}
             title="Batalkan Surat Perjanjian Kerja (SPK)"
