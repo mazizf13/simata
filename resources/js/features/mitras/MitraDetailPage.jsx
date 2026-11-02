@@ -9,6 +9,7 @@ import {
     LoadingState,
     ErrorState,
     EmptyState,
+    AssignmentStatusBadge,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -21,14 +22,23 @@ import {
     IconPhone,
     IconMail,
     IconBriefcase,
+    IconCalendar,
+    IconCheck,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
+import assignmentService from '../../services/assignmentService';
 
 export const MitraDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('info');
 
+    // Filter year and month for honor summary
+    const now = new Date();
+    const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+
+    // Fetch Mitra details
     const {
         data: mitraResponse,
         isLoading,
@@ -40,8 +50,46 @@ export const MitraDetailPage = () => {
             return await masterDataService.getMitra(id);
         },
     });
-
     const mitra = mitraResponse?.data;
+
+    // Fetch Mitra assignments history
+    const {
+        data: assignmentsResponse,
+        isLoading: assignmentsLoading,
+    } = useQuery({
+        queryKey: ['mitra-assignments', id],
+        queryFn: async () => {
+            return await assignmentService.getAssignments({ mitra_id: id, per_page: 50 });
+        },
+        enabled: activeTab === 'assignments' || activeTab === 'honor',
+    });
+    const assignments = assignmentsResponse?.data || [];
+
+    // Fetch Mitra Monthly Honor Summary
+    const {
+        data: honorSummaryResponse,
+        isLoading: summaryLoading,
+    } = useQuery({
+        queryKey: ['mitra-honor-summary', id, selectedYear, selectedMonth],
+        queryFn: async () => {
+            return await assignmentService.getMitraHonorSummary(id, selectedYear, selectedMonth);
+        },
+        enabled: activeTab === 'honor',
+    });
+    const summary = honorSummaryResponse?.data;
+
+    // Fetch 12-month breakdown
+    const {
+        data: breakdownResponse,
+        isLoading: breakdownLoading,
+    } = useQuery({
+        queryKey: ['mitra-honor-breakdown', id, selectedYear],
+        queryFn: async () => {
+            return await assignmentService.getMitraHonorBreakdown(id, selectedYear);
+        },
+        enabled: activeTab === 'honor',
+    });
+    const breakdown = breakdownResponse?.data || [];
 
     if (isLoading) {
         return (
@@ -66,8 +114,25 @@ export const MitraDetailPage = () => {
     const tabs = [
         { id: 'info', label: 'Informasi Profil', icon: <IconUser size={16} /> },
         { id: 'assignments', label: 'Riwayat Penugasan', icon: <IconCalendarTime size={16} /> },
-        { id: 'honor', label: 'Rekap Honor', icon: <IconCash size={16} /> },
+        { id: 'honor', label: 'Rekap Honor & Kuota', icon: <IconCash size={16} /> },
         { id: 'spk', label: 'Dokumen SPK', icon: <IconFileText size={16} /> },
+    ];
+
+    const formatRp = (num) => 'Rp ' + Number(num || 0).toLocaleString('id-ID');
+
+    const months = [
+        { val: 1, label: 'Januari' },
+        { val: 2, label: 'Februari' },
+        { val: 3, label: 'Maret' },
+        { val: 4, label: 'April' },
+        { val: 5, label: 'Mei' },
+        { val: 6, label: 'Juni' },
+        { val: 7, label: 'Juli' },
+        { val: 8, label: 'Agustus' },
+        { val: 9, label: 'September' },
+        { val: 10, label: 'Oktober' },
+        { val: 11, label: 'November' },
+        { val: 12, label: 'Desember' },
     ];
 
     return (
@@ -113,7 +178,7 @@ export const MitraDetailPage = () => {
                 </div>
             </div>
 
-            {/* Tab Contents */}
+            {/* Tab 1: Informasi */}
             {activeTab === 'info' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2 space-y-6">
@@ -235,29 +300,234 @@ export const MitraDetailPage = () => {
                 </div>
             )}
 
+            {/* Tab 2: Riwayat Penugasan */}
             {activeTab === 'assignments' && (
-                <CardContainer>
-                    <EmptyState
-                        title="Belum Ada Riwayat Penugasan"
-                        description="Mitra ini belum memiliki riwayat penugasan kegiatan survei. Modul Penugasan Mitra dan Alokasi Beban Tugas akan diaktifkan pada Phase 3."
-                    />
-                </CardContainer>
+                <div className="space-y-4">
+                    {assignmentsLoading ? (
+                        <LoadingState message="Memuat riwayat penugasan mitra..." />
+                    ) : assignments.length === 0 ? (
+                        <CardContainer>
+                            <EmptyState
+                                title="Belum Ada Riwayat Penugasan"
+                                description="Mitra ini belum memiliki penugasan survei atau sensus yang terdaftar."
+                            />
+                        </CardContainer>
+                    ) : (
+                        <div className="bg-white border border-gray-200 rounded-lg overflow-x-auto shadow-xs">
+                            <table className="w-full text-left text-xs border-collapse">
+                                <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 font-semibold uppercase tracking-wider">
+                                    <tr>
+                                        <th className="py-3 px-4">Kegiatan Survei</th>
+                                        <th className="py-3 px-4">Jadwal Tugas</th>
+                                        <th className="py-3 px-4">Volume & Beban</th>
+                                        <th className="py-3 px-4 text-right">Nilai Honor</th>
+                                        <th className="py-3 px-4">Status</th>
+                                        <th className="py-3 px-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100 bg-white">
+                                    {assignments.map((item) => (
+                                        <tr key={item.id} className="hover:bg-gray-50/70">
+                                            <td className="py-3 px-4 font-medium text-gray-900">
+                                                <div>{item.snapshots?.task_name || item.task?.name}</div>
+                                                <div className="text-[11px] text-gray-500">
+                                                    {item.snapshots?.team_name || item.task?.team?.name}
+                                                </div>
+                                            </td>
+                                            <td className="py-3 px-4 text-gray-700">
+                                                <div>{item.start_date}</div>
+                                                <div className="text-gray-400">s.d. {item.end_date}</div>
+                                            </td>
+                                            <td className="py-3 px-4 text-gray-700">
+                                                {item.volume} {item.snapshots?.unit}
+                                            </td>
+                                            <td className="py-3 px-4 text-right font-mono font-semibold text-gray-900">
+                                                {item.formatted_total_value || formatRp(item.total_value)}
+                                            </td>
+                                            <td className="py-3 px-4">
+                                                <AssignmentStatusBadge status={item.status} />
+                                            </td>
+                                            <td className="py-3 px-4 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => navigate(`/app/assignments/${item.id}`)}
+                                                    className="px-2 py-1 text-xs text-blue-700 bg-blue-50 hover:bg-blue-100 rounded transition-colors font-medium"
+                                                >
+                                                    Detail
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div>
             )}
 
+            {/* Tab 3: Rekap Honor & Kuota Bulanan */}
             {activeTab === 'honor' && (
-                <CardContainer>
-                    <EmptyState
-                        title="Belum Ada Rekap Honor"
-                        description="Akumulasi penerimaan honor bulanan mitra akan dikalkulasi otomatis dan ditampilkan di sini saat penugasan survei berjalan (Phase 3)."
-                    />
-                </CardContainer>
+                <div className="space-y-6">
+                    {/* Filter Periode */}
+                    <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 className="text-sm font-bold text-gray-900">
+                                Monitoring Kuota & Akumulasi Honor Bulanan
+                            </h3>
+                            <p className="text-xs text-gray-500">
+                                Parameter batas resmi BPS Mojokerto: Maksimal 10 penugasan ATAU total honor Rp 4.000.000 per bulan.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                                className="h-9 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
+                            >
+                                {months.map((m) => (
+                                    <option key={m.val} value={m.val}>
+                                        {m.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="number"
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                                className="h-9 w-24 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 font-mono"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Month Summary Cards */}
+                    {summaryLoading ? (
+                        <LoadingState message="Menghitung kuota dan honor..." />
+                    ) : summary ? (
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs space-y-1">
+                                <span className="text-xs font-semibold uppercase text-gray-500">
+                                    Jumlah Tugas ({summary.month_name})
+                                </span>
+                                <div className="text-xl font-bold text-gray-900 font-mono">
+                                    {summary.total_tasks} <span className="text-xs text-gray-400 font-normal">/ {summary.max_tasks} tugas</span>
+                                </div>
+                                <div className="text-xs text-blue-700 font-medium">
+                                    Sisa Kuota: {summary.remaining_tasks} tugas
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs space-y-1">
+                                <span className="text-xs font-semibold uppercase text-gray-500">
+                                    Total Honor ({summary.month_name})
+                                </span>
+                                <div className="text-xl font-bold text-blue-900 font-mono">
+                                    {formatRp(summary.total_honor)}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    Batas Maksimal: {formatRp(summary.max_honor)}
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs space-y-1">
+                                <span className="text-xs font-semibold uppercase text-gray-500">
+                                    Sisa Batas Honor
+                                </span>
+                                <div className="text-xl font-bold text-emerald-800 font-mono">
+                                    {formatRp(summary.remaining_honor)}
+                                </div>
+                                <div className="text-xs text-emerald-600 font-medium">
+                                    Tersedia untuk alokasi baru
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-xs space-y-1">
+                                <span className="text-xs font-semibold uppercase text-gray-500">
+                                    Persentase Kuota Terpakai
+                                </span>
+                                <div className="text-xl font-bold text-gray-900 font-mono">
+                                    {Math.max(summary.task_percentage, summary.honor_percentage)}%
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                    Tugas: {summary.task_percentage}% | Honor: {summary.honor_percentage}%
+                                </div>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {/* 12-Month Table Breakdown */}
+                    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xs">
+                        <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 font-semibold text-xs text-gray-700 uppercase tracking-wider">
+                            Rincian Akumulasi Sepanjang Tahun {selectedYear}
+                        </div>
+                        <table className="w-full text-left text-xs border-collapse">
+                            <thead className="bg-gray-50/50 border-b border-gray-200 text-gray-500 font-medium">
+                                <tr>
+                                    <th className="py-2.5 px-4">Bulan Pembebanan</th>
+                                    <th className="py-2.5 px-4">Tugas Terhitung</th>
+                                    <th className="py-2.5 px-4">Sisa Kuota Tugas</th>
+                                    <th className="py-2.5 px-4 text-right">Total Honor</th>
+                                    <th className="py-2.5 px-4 text-right">Sisa Batas Honor</th>
+                                    <th className="py-2.5 px-4">Status Batas</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100 bg-white">
+                                {breakdown.map((row) => {
+                                    const isCurrent = row.month === selectedMonth;
+                                    const isFull = row.total_tasks >= 10 || row.total_honor >= 4000000;
+
+                                    return (
+                                        <tr
+                                            key={row.month}
+                                            onClick={() => setSelectedMonth(row.month)}
+                                            className={`cursor-pointer transition-colors ${
+                                                isCurrent ? 'bg-blue-50/60 font-semibold' : 'hover:bg-gray-50/60'
+                                            }`}
+                                        >
+                                            <td className="py-2.5 px-4 text-gray-900">
+                                                {row.month_name} {row.year}
+                                            </td>
+                                            <td className="py-2.5 px-4 text-gray-700 font-mono">
+                                                {row.total_tasks} / 10
+                                            </td>
+                                            <td className="py-2.5 px-4 text-gray-500 font-mono">
+                                                {row.remaining_tasks} tugas
+                                            </td>
+                                            <td className="py-2.5 px-4 text-right font-mono text-gray-900">
+                                                {formatRp(row.total_honor)}
+                                            </td>
+                                            <td className="py-2.5 px-4 text-right font-mono text-emerald-700">
+                                                {formatRp(row.remaining_honor)}
+                                            </td>
+                                            <td className="py-2.5 px-4">
+                                                {isFull ? (
+                                                    <span className="px-2 py-0.5 rounded text-[11px] bg-red-50 text-red-700 border border-red-200">
+                                                        Penuh
+                                                    </span>
+                                                ) : row.total_tasks > 0 ? (
+                                                    <span className="px-2 py-0.5 rounded text-[11px] bg-blue-50 text-blue-700 border border-blue-200">
+                                                        Terisi Sebagian
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-0.5 rounded text-[11px] bg-gray-100 text-gray-500">
+                                                        Kosong
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             )}
 
+            {/* Tab 4: SPK */}
             {activeTab === 'spk' && (
                 <CardContainer>
                     <EmptyState
                         title="Belum Ada Dokumen SPK"
-                        description="Daftar surat perintah kerja (SPK) yang mengikat tugas mitra akan dikelola pada modul dokumen SPK di Phase 4."
+                        description="Modul administrasi penomoran SPK, pencatatan tanggal kontrak, dan pengesahan SPK mitra akan diintegrasikan pada Phase 4."
                     />
                 </CardContainer>
             )}

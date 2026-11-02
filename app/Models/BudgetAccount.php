@@ -34,6 +34,14 @@ class BudgetAccount extends Model
     }
 
     /**
+     * @return HasMany<TaskAssignment, BudgetAccount>
+     */
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /**
      * Scope only active accounts.
      */
     public function scopeActive(Builder $query): Builder

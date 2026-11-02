@@ -48,6 +48,14 @@ class Task extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<TaskAssignment>
+     */
+    public function taskAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /**
      * Scope only active tasks.
      */
     public function scopeActive(Builder $query): Builder

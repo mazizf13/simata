@@ -6,6 +6,7 @@ import AppShell from '../components/AppShell';
 import LoginPage from '../features/auth/LoginPage';
 import DashboardPage from '../features/dashboard/DashboardPage';
 import AssignmentsPage from '../features/assignments/AssignmentsPage';
+import AssignmentDetailPage from '../features/assignments/AssignmentDetailPage';
 import MitrasPage from '../features/mitras/MitrasPage';
 import MitraDetailPage from '../features/mitras/MitraDetailPage';
 import TeamsPage from '../features/teams/TeamsPage';
@@ -29,6 +30,7 @@ export const AppRouter = () => {
                     <Route index element={<Navigate to="/app/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="assignments" element={<AssignmentsPage />} />
+                    <Route path="assignments/:id" element={<AssignmentDetailPage />} />
                     <Route path="mitras" element={<MitrasPage />} />
                     <Route path="mitras/:id" element={<MitraDetailPage />} />
                     <Route path="teams" element={<TeamsPage />} />
