@@ -29,10 +29,12 @@ export const CustomDatePicker = ({
     minDate = null, // YYYY-MM-DD
     maxDate = null, // YYYY-MM-DD
     clearable = true,
+    align = 'auto', // 'left' | 'right' | 'auto'
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [openUpward, setOpenUpward] = useState(false);
+    const [alignRight, setAlignRight] = useState(false);
     const [viewMode, setViewMode] = useState('days'); // 'days' | 'months' | 'years'
     const containerRef = useRef(null);
 
@@ -45,8 +47,18 @@ export const CustomDatePicker = ({
             } else {
                 setOpenUpward(false);
             }
+
+            if (align === 'right') {
+                setAlignRight(true);
+            } else if (align === 'left') {
+                setAlignRight(false);
+            } else {
+                // Auto detect if there's less than 340px to the right edge of viewport
+                const spaceRight = window.innerWidth - rect.left;
+                setAlignRight(spaceRight < 340);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, align]);
 
     // Parse current value or fallback to today
     const parsedDate = useMemo(() => {
@@ -251,7 +263,7 @@ export const CustomDatePicker = ({
 
             {/* Custom Calendar Popover */}
             {isOpen && (
-                <div className={`absolute left-0 ${
+                <div className={`absolute ${alignRight ? 'right-0' : 'left-0'} ${
                     openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
                 } z-[100] bg-white border border-gray-200 rounded-lg shadow-2xl p-3.5 w-72 sm:w-80 select-none`}>
                     {/* Header: Month & Year navigation */}

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
 import { FormSection, MitraSelect, CustomDatePicker } from '../../components';
 import { masterDataService } from '../../services/masterDataService';
+import { formatLocalDate } from '../../utils/formatters';
 
 export const SpkFormModal = ({
     isOpen,
@@ -37,7 +38,7 @@ export const SpkFormModal = ({
     const [formData, setFormData] = useState({
         mitra_id: '',
         spk_number: '',
-        contract_date: new Date().toISOString().split('T')[0],
+        contract_date: formatLocalDate(),
         period_start: '',
         period_end: '',
         occupation: 'Mitra Statistik',
@@ -53,7 +54,7 @@ export const SpkFormModal = ({
             setFormData({
                 mitra_id: spk.mitra_id || '',
                 spk_number: spk.spk_number || '',
-                contract_date: spk.contract_date || new Date().toISOString().split('T')[0],
+                contract_date: spk.contract_date || formatLocalDate(),
                 period_start: spk.period_start || '',
                 period_end: spk.period_end || '',
                 occupation: spk.occupation || 'Mitra Statistik',
@@ -66,12 +67,12 @@ export const SpkFormModal = ({
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const firstDay = `${year}-${month}-01`;
-            const lastDay = new Date(year, today.getMonth() + 1, 0).toISOString().split('T')[0];
+            const lastDay = formatLocalDate(new Date(year, today.getMonth() + 1, 0));
 
             setFormData({
                 mitra_id: initialMitraId || '',
                 spk_number: '',
-                contract_date: today.toISOString().split('T')[0],
+                contract_date: formatLocalDate(),
                 period_start: firstDay,
                 period_end: lastDay,
                 occupation: 'Mitra Statistik',
@@ -139,7 +140,7 @@ export const SpkFormModal = ({
             isOpen={isOpen}
             onClose={onClose}
             title={isEdit ? 'Ubah Surat Perjanjian Kerja (SPK)' : 'Buat Surat Perjanjian Kerja (SPK) Baru'}
-            size="lg"
+            size="xl"
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 {errors.general && (
@@ -211,6 +212,7 @@ export const SpkFormModal = ({
                                     minDate={formData.period_start}
                                     error={errors.period_end}
                                     disabled={isLoading}
+                                    align="right"
                                 />
                             </div>
                         </div>

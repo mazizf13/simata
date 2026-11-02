@@ -64,3 +64,18 @@ export const getRoleLabel = (role) => {
     };
     return roles[role] || role || '-';
 };
+
+/**
+ * Format a Date or date string to local YYYY-MM-DD string without UTC timezone shift.
+ *
+ * @param {Date|string} [date]
+ * @returns {string}
+ */
+export const formatLocalDate = (date = new Date()) => {
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
