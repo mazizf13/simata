@@ -51,4 +51,31 @@ class TaskService
         $task->update(['is_active' => false]);
         return $task;
     }
+
+    /**
+     * Auto-generate sequential task code per team: SURV-{TEAM_CODE}-{YEAR}-{INDEX}
+     */
+    public function generateNextCode(?int $teamId = null): string
+    {
+        $team = $teamId ? \App\Models\Team::find($teamId) : null;
+        $teamCode = $team ? strtoupper(trim($team->code)) : 'BPS';
+        $year = date('Y');
+
+        $prefix = "SURV-{$teamCode}-{$year}-";
+
+        $existingCodes = Task::query()
+            ->where('code', 'like', "{$prefix}%")
+            ->pluck('code');
+
+        $maxSeq = 0;
+        foreach ($existingCodes as $c) {
+            if (preg_match('/' . preg_quote($prefix, '/') . '(\d+)$/i', $c, $matches)) {
+                $maxSeq = max($maxSeq, (int) $matches[1]);
+            }
+        }
+
+        $nextSeq = str_pad((string) ($maxSeq + 1), 2, '0', STR_PAD_LEFT);
+
+        return "{$prefix}{$nextSeq}";
+    }
 }

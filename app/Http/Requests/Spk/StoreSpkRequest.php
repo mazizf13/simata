@@ -11,6 +11,15 @@ class StoreSpkRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if (empty($this->spk_number) && !empty($this->contract_date)) {
+            $this->merge([
+                'spk_number' => app(\App\Services\SpkService::class)->generateNextSpkNumber($this->contract_date),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         return [

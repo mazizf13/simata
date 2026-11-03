@@ -52,7 +52,7 @@ export const AssignmentSummary = ({
                 <span className="text-sm font-semibold text-gray-700">Total Nilai Perjanjian:</span>
                 <div className="text-right">
                     <span className="text-lg font-bold text-blue-900 font-mono">
-                        {formatRp(totalValue)}
+                        {formatRupiah(totalValue)}
                     </span>
                 </div>
             </div>

@@ -17,6 +17,13 @@ export const spkService = {
     },
 
     /**
+     * Get auto-generated next SPK number for a specific contract date.
+     */
+    getNextNumber: async (date = null) => {
+        return await api.get('/spks/next-number', { params: date ? { date } : {} });
+    },
+
+    /**
      * Create new SPK.
      */
     createSpk: async (data) => {
@@ -106,6 +113,18 @@ export const spkService = {
         }
 
         const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+
+        // Jika server mengembalikan response error JSON dalam format blob
+        if (blob.type === 'application/json') {
+            const errorText = await blob.text();
+            try {
+                const errJson = JSON.parse(errorText);
+                throw new Error(errJson.message || 'Gagal mengunduh dokumen SPK.');
+            } catch (parseErr) {
+                throw new Error(parseErr.message || 'Gagal mengunduh berkas.');
+            }
+        }
+
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;

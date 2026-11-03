@@ -22,6 +22,9 @@ export const masterDataService = {
     },
 
     // === TASKS (KEGIATAN SURVEI) ===
+    getNextTaskCode: async (teamId = null) => {
+        return await api.get('/tasks/next-code', { params: teamId ? { team_id: teamId } : {} });
+    },
     getTasks: async (params = {}) => {
         return await api.get('/tasks', { params });
     },

@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
+import { IconRefresh } from '@tabler/icons-react';
 import { FormSection, MitraSelect, CustomDatePicker } from '../../components';
 import { masterDataService } from '../../services/masterDataService';
+import { spkService } from '../../services/spkService';
 import { formatLocalDate } from '../../utils/formatters';
 
 export const SpkFormModal = ({
@@ -48,6 +50,22 @@ export const SpkFormModal = ({
     });
 
     const [errors, setErrors] = useState({});
+    const [isGeneratingNumber, setIsGeneratingNumber] = useState(false);
+
+    const fetchAutoNumber = useCallback(async (targetDate) => {
+        try {
+            setIsGeneratingNumber(true);
+            const res = await spkService.getNextNumber(targetDate || formatLocalDate());
+            const generated = res?.data?.spk_number || res?.spk_number;
+            if (generated) {
+                setFormData((prev) => ({ ...prev, spk_number: generated }));
+            }
+        } catch (err) {
+            console.warn('Gagal mengambil nomor SPK otomatis:', err);
+        } finally {
+            setIsGeneratingNumber(false);
+        }
+    }, []);
 
     useEffect(() => {
         if (spk) {
@@ -62,17 +80,18 @@ export const SpkFormModal = ({
                 work_address: spk.work_address || 'Kabupaten Mojokerto',
                 notes: spk.notes || '',
             });
-        } else {
+        } else if (isOpen) {
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const firstDay = `${year}-${month}-01`;
             const lastDay = formatLocalDate(new Date(year, today.getMonth() + 1, 0));
+            const todayFormatted = formatLocalDate();
 
             setFormData({
                 mitra_id: initialMitraId || '',
                 spk_number: '',
-                contract_date: formatLocalDate(),
+                contract_date: todayFormatted,
                 period_start: firstDay,
                 period_end: lastDay,
                 occupation: 'Mitra Statistik',
@@ -80,6 +99,9 @@ export const SpkFormModal = ({
                 work_address: 'Kabupaten Mojokerto',
                 notes: '',
             });
+
+            // Otomatis isi nomor SPK berikutnya
+            fetchAutoNumber(todayFormatted);
         }
         setErrors({});
     }, [spk, isOpen, initialMitraId]);
@@ -88,6 +110,11 @@ export const SpkFormModal = ({
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors((prev) => ({ ...prev, [field]: null }));
+        }
+
+        // Jika mengubah tanggal SPK pada form baru, perbarui nomor urut SPK otomatis
+        if (field === 'contract_date' && !isEdit && value) {
+            fetchAutoNumber(value);
         }
     };
 
@@ -168,15 +195,34 @@ export const SpkFormModal = ({
                             </div>
 
                             <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Nomor SPK <span className="text-red-500">*</span>
+                                    </label>
+                                    {!isEdit && (
+                                        <button
+                                            type="button"
+                                            onClick={() => fetchAutoNumber(formData.contract_date)}
+                                            disabled={isLoading || isGeneratingNumber}
+                                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50 font-medium"
+                                            title="Generate ulang nomor urut SPK otomatis berdasarkan bulan terpilih"
+                                        >
+                                            <IconRefresh size={13} className={isGeneratingNumber ? 'animate-spin' : ''} />
+                                            <span>{isGeneratingNumber ? 'Membuat...' : 'Buat Otomatis'}</span>
+                                        </button>
+                                    )}
+                                </div>
                                 <TextField
-                                    label="Nomor SPK *"
-                                    placeholder="Contoh: 015/SPK/3516/2026"
+                                    placeholder="Contoh: 001/3516/SPK.1/IX/2026"
                                     value={formData.spk_number}
                                     onChange={(val) => handleChange('spk_number', val)}
                                     status={errors.spk_number ? 'error' : 'neutral'}
                                     statusMessage={errors.spk_number}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isGeneratingNumber}
                                 />
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Format: <code>001/3516/SPK.N/Bulan/Tahun</code> (urut mulai dari 1 per bulan, dapat disunting manual).
+                                </p>
                             </div>
                         </div>
 

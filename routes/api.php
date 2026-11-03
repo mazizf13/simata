@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/mitras/{id}/deactivate', [MitraController::class, 'deactivate']);
 
     // Kegiatan Survei / Tasks
+    Route::get('/tasks/next-code', [TaskController::class, 'nextCode']);
     Route::get('/tasks/active', [TaskController::class, 'active']);
     Route::get('/tasks', [TaskController::class, 'index']);
     Route::post('/tasks', [TaskController::class, 'store']);
@@ -101,6 +102,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/mitras/{id}/honor-breakdown', [HonorCalculationController::class, 'breakdown']);
 
     // Surat Perjanjian Kerja / SPK
+    Route::get('/spks/next-number', [SpkController::class, 'nextNumber']);
     Route::get('/spks', [SpkController::class, 'index']);
     Route::post('/spks', [SpkController::class, 'store']);
     Route::get('/spks/{id}', [SpkController::class, 'show']);

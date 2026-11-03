@@ -27,6 +27,22 @@ class SpkController extends Controller
     ) {}
 
     /**
+     * Get auto-generated next SPK number for a given contract date.
+     */
+    public function nextNumber(Request $request): JsonResponse
+    {
+        Gate::authorize('create', Spk::class);
+
+        $date = $request->query('date', now()->toDateString());
+        $spkNumber = $this->spkService->generateNextSpkNumber($date);
+
+        return $this->ok(
+            ['spk_number' => $spkNumber],
+            'Nomor SPK berikutnya berhasil dibuat otomatis.'
+        );
+    }
+
+    /**
      * Display a listing of SPKs with filtering & pagination.
      */
     public function index(Request $request): JsonResponse

@@ -30,6 +30,7 @@ export const CustomDatePicker = ({
     maxDate = null, // YYYY-MM-DD
     clearable = true,
     align = 'auto', // 'left' | 'right' | 'auto'
+    direction = 'down', // 'down' | 'up' | 'auto' - Default ke bawah agar tidak tertutup header/layar
     className = '',
 }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -41,11 +42,15 @@ export const CustomDatePicker = ({
     useEffect(() => {
         if (isOpen && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
-            const spaceBelow = window.innerHeight - rect.bottom;
-            if (spaceBelow < 350 && rect.top > 320) {
+            
+            if (direction === 'up') {
                 setOpenUpward(true);
-            } else {
+            } else if (direction === 'down') {
                 setOpenUpward(false);
+            } else {
+                // Auto: Hanya buka ke atas jika ruang bawah benar-benar sempit dan ruang atas lapang
+                const spaceBelow = window.innerHeight - rect.bottom;
+                setOpenUpward(spaceBelow < 280 && rect.top > 360);
             }
 
             if (align === 'right') {
@@ -58,7 +63,7 @@ export const CustomDatePicker = ({
                 setAlignRight(spaceRight < 340);
             }
         }
-    }, [isOpen, align]);
+    }, [isOpen, align, direction]);
 
     // Parse current value or fallback to today
     const parsedDate = useMemo(() => {

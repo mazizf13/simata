@@ -129,4 +129,35 @@ class SpkDocumentTest extends TestCase
         $contentDisposition = $response->headers->get('Content-Disposition');
         $this->assertStringContainsString('SPK_001-3516-SPK.48-XI-2026_zakia_indira_syahda.docx', $contentDisposition);
     }
+
+    public function test_roman_month_helper(): void
+    {
+        $this->assertEquals('I', TerbilangHelper::romanMonth(1));
+        $this->assertEquals('IX', TerbilangHelper::romanMonth(9));
+        $this->assertEquals('XI', TerbilangHelper::romanMonth(11));
+        $this->assertEquals('XII', TerbilangHelper::romanMonth(12));
+    }
+
+    public function test_auto_generate_next_spk_number_format_and_sequence(): void
+    {
+        $spkService = app(\App\Services\SpkService::class);
+
+        // November 2026 already has SPK.48 from setUp
+        $nextNov = $spkService->generateNextSpkNumber('2026-11-03');
+        $this->assertEquals('001/3516/SPK.49/XI/2026', $nextNov);
+
+        // September 2026 has no SPKs yet -> should be SPK.1
+        $nextSep = $spkService->generateNextSpkNumber('2026-09-15');
+        $this->assertEquals('001/3516/SPK.1/IX/2026', $nextSep);
+    }
+
+    public function test_next_number_api_endpoint(): void
+    {
+        Sanctum::actingAs($this->adminUser);
+
+        $response = $this->getJson('/api/spks/next-number?date=2026-09-15');
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.spk_number', '001/3516/SPK.1/IX/2026');
+    }
 }
