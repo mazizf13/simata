@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
 import { FormSection, MoneyInput, CustomSelect } from '../../components';
+import { IconSparkles } from '@tabler/icons-react';
 
 export const TaskFormModal = ({
     isOpen,
@@ -60,6 +61,15 @@ export const TaskFormModal = ({
         }
     };
 
+    const generateAutomaticCode = () => {
+        const selectedTeam = teams.find((t) => Number(t.id) === Number(formData.team_id));
+        const teamCode = selectedTeam ? selectedTeam.code.toUpperCase() : 'BPS';
+        const year = new Date().getFullYear();
+        const randomNum = String(Math.floor(Math.random() * 89) + 10);
+        const generated = `SURV-${teamCode}-${year}-${randomNum}`;
+        handleChange('code', generated);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setErrors({});
@@ -104,11 +114,21 @@ export const TaskFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
+                                <div className="flex items-center justify-between mb-1">
+                                    <label className="text-xs font-semibold text-gray-700">Kode Kegiatan *</label>
+                                    <button
+                                        type="button"
+                                        onClick={generateAutomaticCode}
+                                        className="text-[11px] text-blue-700 hover:text-blue-900 hover:underline font-medium inline-flex items-center gap-1"
+                                        title="Buat kode kegiatan otomatis berstandar BPS"
+                                    >
+                                        <IconSparkles size={12} /> Buat Otomatis
+                                    </button>
+                                </div>
                                 <TextField
-                                    label="Kode Kegiatan *"
                                     placeholder="Contoh: SURV-PROD-2026-01"
                                     value={formData.code}
-                                    onChange={(val) => handleChange('code', val)}
+                                    onChange={(val) => handleChange('code', val.toUpperCase())}
                                     status={errors.code ? 'error' : 'neutral'}
                                     statusMessage={errors.code}
                                     disabled={isLoading}

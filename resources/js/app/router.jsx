@@ -15,6 +15,7 @@ import SpksPage from '../features/spks/SpksPage';
 import SpkDetailPage from '../features/spks/SpkDetailPage';
 import ReportsPage from '../features/reports/ReportsPage';
 import SettingsPage from '../features/settings/SettingsPage';
+import BudgetAccountsPage from '../features/budget-accounts/BudgetAccountsPage';
 
 export const AppRouter = () => {
     return (
@@ -36,6 +37,7 @@ export const AppRouter = () => {
                     <Route path="mitras/:id" element={<MitraDetailPage />} />
                     <Route path="teams" element={<TeamsPage />} />
                     <Route path="tasks" element={<TasksPage />} />
+                    <Route path="budget-accounts" element={<BudgetAccountsPage />} />
                     <Route path="spks" element={<SpksPage />} />
                     <Route path="spks/:id" element={<SpkDetailPage />} />
                     <Route path="reports" element={<ReportsPage />} />

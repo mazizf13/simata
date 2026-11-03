@@ -5,6 +5,7 @@ export const TeamFormModal = ({
     isOpen,
     onClose,
     team = null,
+    users = [],
     onSubmit,
     isLoading = false,
 }) => {
@@ -15,6 +16,7 @@ export const TeamFormModal = ({
         name: '',
         description: '',
         is_active: true,
+        user_ids: [],
     });
 
     const [errors, setErrors] = useState({});
@@ -26,6 +28,7 @@ export const TeamFormModal = ({
                 name: team.name || '',
                 description: team.description || '',
                 is_active: typeof team.is_active === 'boolean' ? team.is_active : true,
+                user_ids: Array.isArray(team.users) ? team.users.map((u) => u.id) : [],
             });
         } else {
             setFormData({
@@ -33,6 +36,7 @@ export const TeamFormModal = ({
                 name: '',
                 description: '',
                 is_active: true,
+                user_ids: [],
             });
         }
         setErrors({});
@@ -76,7 +80,7 @@ export const TeamFormModal = ({
             open={isOpen}
             onClose={onClose}
             title={isEdit ? 'Ubah Data Tim Kerja' : 'Tambah Tim Kerja Baru'}
-            size="md"
+            size="lg"
         >
             <form onSubmit={handleSubmit} className="py-2 space-y-4">
                 <div>
@@ -112,12 +116,69 @@ export const TeamFormModal = ({
                         placeholder="Ruang lingkup survei dan tanggung jawab tugas tim..."
                         value={formData.description}
                         onChange={(val) => handleChange('description', val)}
-                        rows={3}
+                        rows={2}
                         disabled={isLoading}
                     />
                 </div>
 
-                <div className="flex items-center gap-2 pt-2">
+                {/* Pengguna / Operator Tim */}
+                <div className="border border-gray-200 rounded-lg p-3.5 bg-gray-50/60 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <label className="text-xs font-semibold text-gray-800 block">
+                                Pengguna Operator Tim ({formData.user_ids.length} dipilih)
+                            </label>
+                            <span className="text-[11px] text-gray-500">
+                                Tetapkan akun pegawai BPS sebagai penanggung jawab / operator tim ini
+                            </span>
+                        </div>
+                    </div>
+                    <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1 divide-y divide-gray-100 bg-white p-2 rounded-md border border-gray-200">
+                        {users.length === 0 ? (
+                            <p className="text-xs text-gray-400 italic py-3 text-center">
+                                Tidak ada data pengguna pegawai yang aktif.
+                            </p>
+                        ) : (
+                            users.map((u) => {
+                                const isChecked = formData.user_ids.includes(u.id);
+                                return (
+                                    <label
+                                        key={u.id}
+                                        className={`flex items-center justify-between p-2 rounded cursor-pointer transition-colors ${
+                                            isChecked ? 'bg-blue-50/80 border border-blue-200' : 'hover:bg-gray-50'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={(e) => {
+                                                    const next = e.target.checked
+                                                        ? [...formData.user_ids, u.id]
+                                                        : formData.user_ids.filter((id) => id !== u.id);
+                                                    handleChange('user_ids', next);
+                                                }}
+                                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                disabled={isLoading}
+                                            />
+                                            <div>
+                                                <div className="text-xs font-semibold text-gray-900">{u.name}</div>
+                                                <div className="text-[11px] text-gray-500">{u.email}</div>
+                                            </div>
+                                        </div>
+                                        {u.roles && u.roles.length > 0 && (
+                                            <span className="text-[10px] font-semibold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full">
+                                                {u.roles.map((r) => r.label || r.name).join(', ')}
+                                            </span>
+                                        )}
+                                    </label>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
                     <input
                         type="checkbox"
                         id="team-is-active"

@@ -67,6 +67,9 @@ export const masterDataService = {
         await initCsrf();
         return await api.delete(`/teams/${id}`);
     },
+    getUsers: async () => {
+        return await api.get('/teams/users');
+    },
 
     // === BUDGET ACCOUNTS ===
     getBudgetAccounts: async (params = {}) => {

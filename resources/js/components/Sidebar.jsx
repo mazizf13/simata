@@ -10,6 +10,7 @@ import {
     IconFileText,
     IconReportAnalytics,
     IconSettings,
+    IconReceiptTax,
     IconX,
 } from '@tabler/icons-react';
 
@@ -45,6 +46,12 @@ export const Sidebar = ({ isOpen, onClose }) => {
             label: 'Master Tim',
             to: '/app/teams',
             icon: IconBriefcase,
+            show: hasAnyRole(['super_admin', 'admin']),
+        },
+        {
+            label: 'Akun Anggaran (MAK)',
+            to: '/app/budget-accounts',
+            icon: IconReceiptTax,
             show: hasAnyRole(['super_admin', 'admin']),
         },
         {

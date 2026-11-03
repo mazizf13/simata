@@ -59,6 +59,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tim Kerja / Teams
     Route::get('/teams/active', [TeamController::class, 'active']);
+    Route::get('/teams/users', [TeamController::class, 'users']);
+    Route::get('/users', [TeamController::class, 'users']);
     Route::get('/teams', [TeamController::class, 'index']);
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{id}', [TeamController::class, 'show']);

@@ -34,6 +34,8 @@ class UpdateTeamRequest extends FormRequest
             ],
             'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 }
