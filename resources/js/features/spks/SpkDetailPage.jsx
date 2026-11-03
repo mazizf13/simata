@@ -51,7 +51,10 @@ export const SpkDetailPage = () => {
     const handleDownloadDocument = async () => {
         try {
             setDownloading(true);
-            await spkService.downloadDocument(id);
+            const cleanSpk = spk?.spk_number ? spk.spk_number.replace(/[\/\\]/g, '-') : id;
+            const cleanMitra = spk?.mitra?.name ? spk.mitra.name.replace(/\s+/g, '_') : 'Mitra';
+            const defaultFilename = `SPK_${cleanSpk}_${cleanMitra}.docx`;
+            await spkService.downloadDocument(id, defaultFilename);
             refetch();
         } catch (err) {
             console.error('Gagal mengunduh dokumen SPK:', err);

@@ -89,12 +89,12 @@ export const spkService = {
     /**
      * Download SPK Word document with clean formatted name.
      */
-    downloadDocument: async (id) => {
+    downloadDocument: async (id, fallbackFilename = null) => {
         const response = await api.get(`/spks/${id}/download-document`, {
             responseType: 'blob',
         });
 
-        let filename = `SPK_Dokumen_${id}.docx`;
+        let filename = fallbackFilename || `SPK_Dokumen_${id}.docx`;
         const disposition = response.headers?.['content-disposition'];
         if (disposition) {
             const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);

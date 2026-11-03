@@ -157,6 +157,7 @@ class SpkDocumentService
 
         return Storage::disk('local')->download($spk->document_path, $downloadFileName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'Access-Control-Expose-Headers' => 'Content-Disposition',
         ]);
     }
 }
