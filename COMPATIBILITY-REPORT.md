@@ -1,9 +1,10 @@
 # COMPATIBILITY REPORT & RISK MITIGATION --- SIMATA
-**Dokumen:** Compatibility Report (Phase 0 Technical Validation)  
-**Status:** Complete / Verified  
-**Sistem:** SIMATA (Sistem Manajemen Mitra BPS Kabupaten Mojokerto)  
-**Penyusun:** Senior Software Architect & Technical Lead  
-**Tanggal:** 2 November 2026  
+
+**Dokumen:** Compatibility Report (Phase 0 Technical Validation)
+**Status:** Complete / Verified
+**Sistem:** SIMATA (Sistem Manajemen Mitra BPS Kabupaten Mojokerto)
+**Penyusun:** Senior Software Architect & Technical Lead
+**Tanggal:** 2 November 2026
 
 ---
 
@@ -38,6 +39,7 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 ## 2. Analisis Rinci Potensi Masalah Kompatibilitas & Solusi
 
 ### 2.1 Kompatibilitas PHP: Lingkungan Dev (PHP 8.5) vs cPanel Target (PHP 8.2/8.3)
+
 - **Isu:** Lingkungan mesin pengembang lokal menjalankan `PHP 8.5.11` (versi pra-rilis dari Laragon), sedangkan server cPanel shared/cloud hosting di Indonesia umumnya menyediakan PHP versi `8.2` atau `8.3`.
 - **Potensi Risiko:** Jika pengembang secara tidak sengaja menggunakan fitur sintaksis yang hanya ada di PHP 8.4/8.5, aplikasi akan mengalami *Fatal Parse Error* saat dideploy di cPanel.
 - **Tindakan Mitigasi:**
@@ -55,6 +57,7 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 ---
 
 ### 2.2 Kompatibilitas React: React 18 vs React 19 dengan Ekosistem IDDS
+
 - **Isu:** React 19 telah dirilis, namun sejumlah pustaka ekosistem React terkadang memiliki batasan deklarasi *peer dependency* yang memicu peringatan `--legacy-peer-deps`.
 - **Hasil Audit Paket:**
   - `@idds/react` versi `1.6.66` memiliki deklarasi `peerDependencies`:
@@ -73,6 +76,7 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 ---
 
 ### 2.3 Kompatibilitas Styling: @idds/styles dengan Tailwind CSS v4
+
 - **Isu:** Potensi benturan gaya (*CSS specificity collision*) antara CSS reset/preflight Tailwind dengan gaya komponen INA Digital.
 - **Hasil Audit Langsung pada Berkas Paket `@idds/styles`:**
   - Komponen IDDS menggunakan kelas BEM berawalan `ina-` (misalnya: `.ina-button`, `.ina-textfield`, `.ina-modal`).
@@ -94,6 +98,7 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 ---
 
 ### 2.4 Kompatibilitas Basis Data: Concurrency & Lock For Update
+
 - **Isu:** Pengujian aturan batas bulanan (Maks 10 tugas OR Rp4.000.000) terhadap permintaan konkuren (*simultaneous requests*).
 - **Hasil Audit:**
   - Mesin MySQL 8.0 lokal dan server produksi cPanel (MySQL 8.0 atau MariaDB 10.6+) menggunakan storage engine **InnoDB** yang mendukung penuh **Row-Level Locking** dan level isolasi transaksi *Repeatable Read*.
@@ -106,6 +111,7 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 ---
 
 ### 2.5 Kompatibilitas Import Workbook Excel Lama
+
 - **Isu:** File Excel lama BPS Kabupaten Mojokerto menyimpan penugasan dalam 7 kelompok kolom horizontal (`Uraian Tugas 1` s.d. `Uraian Tugas 7`) dengan format tanggal, nominal uang, dan ejaan nama yang bervariasi.
 - **Hasil Audit Mekanisme Import:**
   - Tipe sel pada kolom harga satuan dan nilai perjanjian sering kali tercampur antara teks berawalan `"Rp"`, angka berpemisah titik, atau nilai kosong `"-"`.
@@ -121,25 +127,25 @@ Laporan ini memetakan kompatibilitas antar modul, dependensi pihak ketiga, lingk
 
 ## 3. Persyaratan Spesifik Deployment Hosting cPanel
 
-| Kebutuhan Hosting | Spesifikasi Minimum | Rekomendasi Konfigurasi cPanel |
-| :--- | :--- | :--- |
-| **Versi PHP** | PHP 8.2 | Diaktifkan via MultiPHP Manager |
-| **PHP Memory Limit** | 256 MB | Mengakomodasi parsing berkas Excel bertugas jamak |
-| **Max Execution Time** | 120 detik | Mencegah timeout saat impor massal |
-| **Ekstensi PHP Wajib** | `pdo_mysql`, `bcmath`, `intl`, `zip`, `gd`, `fileinfo`, `mbstring`, `openssl`, `curl` | Diaktifkan melalui cPanel PHP Extensions / Select PHP Version |
-| **Struktur Direktori** | Pemisahan Folder Core & Web | `app_core/` (di luar public) dan `public_html/` (hanya index.php + build) |
-| **Cron Job (Scheduler)** | Opsional (setiap menit jika ada antrean) | `* * * * * /usr/local/bin/php /home/user/simata_core/artisan schedule:run >> /dev/null 2>&1` |
-| **Sertifikat SSL / HTTPS** | Wajib Aktif (Let's Encrypt / AutoSSL) | Menjamin pengiriman session cookie aman (`Secure=true`) |
+| Kebutuhan Hosting                | Spesifikasi Minimum                                                                                     | Rekomendasi Konfigurasi cPanel                                                                 |
+| :------------------------------- | :------------------------------------------------------------------------------------------------------ | :--------------------------------------------------------------------------------------------- |
+| **Versi PHP**              | PHP 8.2                                                                                                 | Diaktifkan via MultiPHP Manager                                                                |
+| **PHP Memory Limit**       | 256 MB                                                                                                  | Mengakomodasi parsing berkas Excel bertugas jamak                                              |
+| **Max Execution Time**     | 120 detik                                                                                               | Mencegah timeout saat impor massal                                                             |
+| **Ekstensi PHP Wajib**     | `pdo_mysql`, `bcmath`, `intl`, `zip`, `gd`, `fileinfo`, `mbstring`, `openssl`, `curl` | Diaktifkan melalui cPanel PHP Extensions / Select PHP Version                                  |
+| **Struktur Direktori**     | Pemisahan Folder Core & Web                                                                             | `app_core/` (di luar public) dan `public_html/` (hanya index.php + build)                  |
+| **Cron Job (Scheduler)**   | Opsional (setiap menit jika ada antrean)                                                                | `* * * * * /usr/local/bin/php /home/user/simata_core/artisan schedule:run >> /dev/null 2>&1` |
+| **Sertifikat SSL / HTTPS** | Wajib Aktif (Let's Encrypt / AutoSSL)                                                                   | Menjamin pengiriman session cookie aman (`Secure=true`)                                      |
 
 ---
 
 ## 4. Rekomendasi Checklist Menuju Phase 1
 
-1. [x] **Evaluasi Dependensi Selesai:** Seluruh dependensi utama (`@idds/react`, Tailwind v4, Sanctum, TanStack Query, PhpSpreadsheet) telah diuji kelayakannya.
-2. [x] **Pilihan Arsitektur Terkunci:** Monorepo Single-Domain dengan autentikasi session cookie Sanctum.
-3. [x] **Rancangan Basis Data Diverifikasi:** Foreign key komposit untuk SPK, field snapshot untuk transaksi historis, dan mekanisme *row locking* untuk integritas batas bulanan.
+1. [X] **Evaluasi Dependensi Selesai:** Seluruh dependensi utama (`@idds/react`, Tailwind v4, Sanctum, TanStack Query, PhpSpreadsheet) telah diuji kelayakannya.
+2. [X] **Pilihan Arsitektur Terkunci:** Monorepo Single-Domain dengan autentikasi session cookie Sanctum.
+3. [X] **Rancangan Basis Data Diverifikasi:** Foreign key komposit untuk SPK, field snapshot untuk transaksi historis, dan mekanisme *row locking* untuk integritas batas bulanan.
 4. [ ] **Langkah Lanjutan (Phase 1 — Foundation):**
-   - Inisialisasi kerangka kerja Laravel 11/12 dan integrasi Vite + React 18.
-   - Pemasangan pustaka `@idds/react` dan konfigurasi Tailwind CSS v4.
-   - Pembuatan layout dasar institusional (`AppShell`, `Sidebar`, `Header`) sesuai panduan visual `DESIGN.md`.
-   - Setup migrasi pengguna, sistem autentikasi sesi, dan kontrak standar respons API JSON.
+    - Inisialisasi kerangka kerja Laravel 11/12 dan integrasi Vite + React 18.
+    - Pemasangan pustaka `@idds/react` dan konfigurasi Tailwind CSS v4.
+    - Pembuatan layout dasar institusional (`AppShell`, `Sidebar`, `Header`) sesuai panduan visual `DESIGN.md`.
+    - Setup migrasi pengguna, sistem autentikasi sesi, dan kontrak standar respons API JSON.

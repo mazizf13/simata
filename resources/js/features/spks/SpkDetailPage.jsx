@@ -24,6 +24,7 @@ import {
     IconCash,
     IconBriefcase,
     IconBuildingBank,
+    IconDownload,
 } from '@tabler/icons-react';
 import spkService from '../../services/spkService';
 import SpkFormModal from './SpkFormModal';
@@ -45,6 +46,20 @@ export const SpkDetailPage = () => {
     const [confirmActivateOpen, setConfirmActivateOpen] = useState(false);
     const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false);
     const [detachTargetAssignment, setDetachTargetAssignment] = useState(null);
+    const [downloading, setDownloading] = useState(false);
+
+    const handleDownloadDocument = async () => {
+        try {
+            setDownloading(true);
+            await spkService.downloadDocument(id);
+            refetch();
+        } catch (err) {
+            console.error('Gagal mengunduh dokumen SPK:', err);
+            alert('Terjadi kesalahan saat memproses atau mengunduh dokumen SPK.');
+        } finally {
+            setDownloading(false);
+        }
+    };
 
     // Fetch SPK Detail
     const {
@@ -172,6 +187,17 @@ export const SpkDetailPage = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
+                    {/* Unduh Dokumen SPK */}
+                    <Button
+                        hierarchy="secondary"
+                        size="md"
+                        prefixIcon={<IconDownload size={16} />}
+                        onClick={handleDownloadDocument}
+                        disabled={downloading}
+                    >
+                        {downloading ? 'Memproses Berkas...' : 'Unduh SPK (.docx)'}
+                    </Button>
+
                     {/* Attach assignment */}
                     {canModify && (
                         <Button
@@ -342,6 +368,22 @@ export const SpkDetailPage = () => {
                         <span className="block text-xs font-medium text-gray-500">Status Perjanjian</span>
                         <div className="mt-1">
                             <SpkStatusBadge status={spk.status} />
+                        </div>
+                    </div>
+
+                    <div>
+                        <span className="block text-xs font-medium text-gray-500">Arsip Berkas Digital</span>
+                        <div className="mt-1">
+                            {spk.has_document ? (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                                    <IconCheck size={13} className="text-emerald-600" />
+                                    Tersimpan ({spk.document_hash ? spk.document_hash.substring(0, 10) + '...' : 'Tersedia'})
+                                </span>
+                            ) : (
+                                <span className="text-[11px] text-gray-400 italic">
+                                    Otomatis di-generate saat diunduh
+                                </span>
+                            )}
                         </div>
                     </div>
 

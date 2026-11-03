@@ -108,6 +108,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/spks/{id}/activate', [SpkController::class, 'activate']);
     Route::post('/spks/{id}/complete', [SpkController::class, 'complete']);
     Route::post('/spks/{id}/cancel', [SpkController::class, 'cancel']);
+    Route::post('/spks/{id}/generate-document', [SpkController::class, 'generateDocument']);
+    Route::get('/spks/{id}/download-document', [SpkController::class, 'downloadDocument']);
     Route::post('/spks/{id}/attach-assignments', [SpkController::class, 'attachAssignments']);
     Route::post('/spks/{id}/detach-assignment/{assignmentId}', [SpkController::class, 'detachAssignment']);
     Route::get('/mitras/{id}/spks', [SpkController::class, 'byMitra']);

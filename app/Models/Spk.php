@@ -25,6 +25,9 @@ class Spk extends Model
         'work_address',
         'status',
         'notes',
+        'document_path',
+        'document_hash',
+        'generated_at',
         'created_by',
     ];
 
@@ -32,6 +35,7 @@ class Spk extends Model
         'contract_date' => 'date',
         'period_start' => 'date',
         'period_end' => 'date',
+        'generated_at' => 'datetime',
         'status' => SpkStatus::class,
     ];
 

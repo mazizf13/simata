@@ -25,6 +25,10 @@ class SpkResource extends JsonResource
             'position' => $this->position,
             'work_address' => $this->work_address,
             'notes' => $this->notes,
+            'document_path' => $this->document_path,
+            'document_hash' => $this->document_hash,
+            'has_document' => !empty($this->document_path),
+            'generated_at' => $this->generated_at ? $this->generated_at->toISOString() : null,
 
             // Status
             'status' => [

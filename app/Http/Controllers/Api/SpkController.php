@@ -9,18 +9,21 @@ use App\Http\Requests\Spk\StoreSpkRequest;
 use App\Http\Requests\Spk\UpdateSpkRequest;
 use App\Http\Resources\SpkResource;
 use App\Models\Spk;
+use App\Services\SpkDocumentService;
 use App\Services\SpkService;
 use App\Traits\ApiResponses;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class SpkController extends Controller
 {
     use ApiResponses;
 
     public function __construct(
-        protected SpkService $spkService
+        protected SpkService $spkService,
+        protected SpkDocumentService $documentService
     ) {}
 
     /**
@@ -195,5 +198,33 @@ class SpkController extends Controller
             SpkResource::collection($spks),
             'Daftar SPK mitra berhasil diambil.'
         );
+    }
+
+    /**
+     * Generate SPK Word (.docx) document.
+     */
+    public function generateDocument(int|string $id): JsonResponse
+    {
+        $spk = $this->spkService->getSpkById($id);
+        Gate::authorize('view', $spk);
+
+        $this->documentService->generate($spk);
+        $spk->refresh();
+
+        return $this->ok(
+            new SpkResource($spk),
+            'Dokumen SPK berhasil dibuat dan diarsipkan.'
+        );
+    }
+
+    /**
+     * Download SPK Word (.docx) document.
+     */
+    public function downloadDocument(int|string $id): StreamedResponse
+    {
+        $spk = $this->spkService->getSpkById($id);
+        Gate::authorize('view', $spk);
+
+        return $this->documentService->download($spk);
     }
 }

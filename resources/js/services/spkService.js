@@ -77,6 +77,41 @@ export const spkService = {
     getMitraSpks: async (mitraId, params = {}) => {
         return await api.get(`/mitras/${mitraId}/spks`, { params });
     },
+
+    /**
+     * Generate or regenerate SPK Word document.
+     */
+    generateDocument: async (id) => {
+        await initCsrf();
+        return await api.post(`/spks/${id}/generate-document`);
+    },
+
+    /**
+     * Download SPK Word document with clean formatted name.
+     */
+    downloadDocument: async (id) => {
+        const response = await api.get(`/spks/${id}/download-document`, {
+            responseType: 'blob',
+        });
+
+        let filename = `SPK_Dokumen_${id}.docx`;
+        const disposition = response.headers?.['content-disposition'];
+        if (disposition) {
+            const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+            if (match && match[1]) {
+                filename = match[1].replace(/['"]/g, '');
+            }
+        }
+
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    },
 };
 
 export default spkService;
