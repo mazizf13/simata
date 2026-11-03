@@ -1,3 +1,4 @@
+import axios from 'axios';
 import api, { initCsrf } from './api';
 
 export const spkService = {
@@ -90,8 +91,9 @@ export const spkService = {
      * Download SPK Word document with clean formatted name.
      */
     downloadDocument: async (id, fallbackFilename = null) => {
-        const response = await api.get(`/spks/${id}/download-document`, {
+        const response = await axios.get(`/api/spks/${id}/download-document`, {
             responseType: 'blob',
+            withCredentials: true,
         });
 
         let filename = fallbackFilename || `SPK_Dokumen_${id}.docx`;
@@ -103,7 +105,8 @@ export const spkService = {
             }
         }
 
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+        const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.setAttribute('download', filename);
