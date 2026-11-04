@@ -21,6 +21,8 @@ class StoreTeamRequest extends FormRequest
             'name' => ['required', 'string', 'max:100', 'unique:teams,name'],
             'description' => ['nullable', 'string'],
             'is_active' => ['nullable', 'boolean'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', 'exists:users,id'],
         ];
     }
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconCash, IconCalendar, IconBuildingBank } from '@tabler/icons-react';
+import { formatDateRange, formatRupiah } from '../utils/formatters';
 
 export const AssignmentSummary = ({
     volume = 0,
@@ -10,7 +11,6 @@ export const AssignmentSummary = ({
     budgetAccountCode = '',
 }) => {
     const totalValue = Math.round(Number(volume || 0) * Number(unitPrice || 0));
-    const formatRp = (num) => 'Rp ' + Number(num || 0).toLocaleString('id-ID');
 
     return (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
@@ -27,15 +27,15 @@ export const AssignmentSummary = ({
                 <div>
                     <span className="text-xs text-gray-500 block">Beban & Tarif Satuan</span>
                     <span className="text-sm font-medium text-gray-900 mt-0.5 block">
-                        {volume} {unit} × {formatRp(unitPrice)}
+                        {volume} {unit} × {formatRupiah(unitPrice)}
                     </span>
                 </div>
 
                 <div>
                     <span className="text-xs text-gray-500 block">Jadwal Pelaksanaan</span>
                     <span className="text-sm font-medium text-gray-900 mt-0.5 flex items-center gap-1">
-                        <IconCalendar size={14} className="text-gray-400" />
-                        {startDate || '-'} s.d. {endDate || '-'}
+                        <IconCalendar size={14} className="text-gray-400 shrink-0" />
+                        <span className="truncate">{formatDateRange(startDate, endDate)}</span>
                     </span>
                 </div>
 
@@ -52,7 +52,7 @@ export const AssignmentSummary = ({
                 <span className="text-sm font-semibold text-gray-700">Total Nilai Perjanjian:</span>
                 <div className="text-right">
                     <span className="text-lg font-bold text-blue-900 font-mono">
-                        {formatRp(totalValue)}
+                        {formatRupiah(totalValue)}
                     </span>
                 </div>
             </div>

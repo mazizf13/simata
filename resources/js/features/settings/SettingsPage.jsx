@@ -12,42 +12,66 @@ import {
 } from '../../components';
 import { Button, TextField, Toggle } from '@idds/react';
 import {
-    IconBuildingBank,
+    IconUsers,
     IconMapPin,
     IconAdjustments,
     IconPlus,
     IconEdit,
-    IconTrash,
+    IconUserCheck,
+    IconUserX,
+    IconSearch,
+    IconShield,
 } from '@tabler/icons-react';
+import userService from '../../services/userService';
 import masterDataService from '../../services/masterDataService';
-import BudgetAccountModal from './BudgetAccountModal';
+import UserModal from './UserModal';
 
 export const SettingsPage = () => {
     const queryClient = useQueryClient();
-    const [activeTab, setActiveTab] = useState('budget_accounts');
+    const [activeTab, setActiveTab] = useState('users');
 
-    // Budget Accounts state
-    const [accountPage, setAccountPage] = useState(1);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [selectedAccount, setSelectedAccount] = useState(null);
-    const [deactivateDialog, setDeactivateDialog] = useState({
+    // Users state
+    const [userPage, setUserPage] = useState(1);
+    const [userSearch, setUserSearch] = useState('');
+    const [userModalOpen, setUserModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [toggleStatusDialog, setToggleStatusDialog] = useState({
         open: false,
-        account: null,
+        user: null,
     });
 
-    // Fetch budget accounts
+    // Fetch users
     const {
-        data: accountsResponse,
-        isLoading: accountsLoading,
+        data: usersResponse,
+        isLoading: usersLoading,
     } = useQuery({
-        queryKey: ['budget-accounts', { page: accountPage }],
+        queryKey: ['users', { page: userPage, search: userSearch }],
         queryFn: async () => {
-            return await masterDataService.getBudgetAccounts({ page: accountPage, per_page: 15 });
+            return await userService.getUsers({ page: userPage, search: userSearch, per_page: 15 });
         },
     });
 
-    const accountsList = accountsResponse?.data || [];
-    const accountsMeta = accountsResponse?.meta || { current_page: 1, last_page: 1, total: 0 };
+    const usersList = usersResponse?.data || [];
+    const usersMeta = usersResponse?.meta || { current_page: 1, last_page: 1, total: 0 };
+
+    // Fetch roles
+    const { data: rolesResponse } = useQuery({
+        queryKey: ['roles'],
+        queryFn: async () => {
+            return await userService.getRoles();
+        },
+    });
+    const rolesList = rolesResponse?.data || [];
+
+    // Fetch active teams
+    const { data: teamsData } = useQuery({
+        queryKey: ['teams', 'active'],
+        queryFn: async () => {
+            const res = await masterDataService.getActiveTeams();
+            return res?.data || [];
+        },
+    });
+    const teamsList = Array.isArray(teamsData) ? teamsData : (teamsData?.data || []);
 
     // Fetch districts (18 official districts)
     const {
@@ -61,86 +85,145 @@ export const SettingsPage = () => {
     });
     const districtsList = districtsResponse?.data || [];
 
-    // Budget Account mutations
-    const createAccountMutation = useMutation({
-        mutationFn: (data) => masterDataService.createBudgetAccount(data),
+    // User mutations
+    const createUserMutation = useMutation({
+        mutationFn: (data) => userService.createUser(data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budget-accounts'] });
-            setModalOpen(false);
-            setSelectedAccount(null);
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            setUserModalOpen(false);
+            setSelectedUser(null);
         },
     });
 
-    const updateAccountMutation = useMutation({
-        mutationFn: ({ id, data }) => masterDataService.updateBudgetAccount(id, data),
+    const updateUserMutation = useMutation({
+        mutationFn: ({ id, data }) => userService.updateUser(id, data),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budget-accounts'] });
-            setModalOpen(false);
-            setSelectedAccount(null);
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            setUserModalOpen(false);
+            setSelectedUser(null);
         },
     });
 
-    const deactivateAccountMutation = useMutation({
-        mutationFn: (id) => masterDataService.deactivateBudgetAccount(id),
+    const toggleStatusMutation = useMutation({
+        mutationFn: (id) => userService.toggleUserStatus(id),
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['budget-accounts'] });
-            setDeactivateDialog({ open: false, account: null });
+            queryClient.invalidateQueries({ queryKey: ['users'] });
+            queryClient.invalidateQueries({ queryKey: ['teams'] });
+            setToggleStatusDialog({ open: false, user: null });
         },
     });
 
-    const handleOpenCreateAccount = () => {
-        setSelectedAccount(null);
-        setModalOpen(true);
+    const handleOpenCreateUser = () => {
+        setSelectedUser(null);
+        setUserModalOpen(true);
     };
 
-    const handleOpenEditAccount = (account) => {
-        setSelectedAccount(account);
-        setModalOpen(true);
+    const handleOpenEditUser = (user) => {
+        setSelectedUser(user);
+        setUserModalOpen(true);
     };
 
-    const handleAccountSubmit = async (formData) => {
-        if (selectedAccount) {
-            return await updateAccountMutation.mutateAsync({
-                id: selectedAccount.id,
+    const handleUserSubmit = async (formData) => {
+        if (selectedUser) {
+            return await updateUserMutation.mutateAsync({
+                id: selectedUser.id,
                 data: formData,
             });
         } else {
-            return await createAccountMutation.mutateAsync(formData);
+            return await createUserMutation.mutateAsync(formData);
         }
     };
 
-    const handleConfirmDeactivateAccount = async () => {
-        if (!deactivateDialog.account) return;
-        await deactivateAccountMutation.mutateAsync(deactivateDialog.account.id);
+    const handleConfirmToggleStatus = async () => {
+        if (!toggleStatusDialog.user) return;
+        await toggleStatusMutation.mutateAsync(toggleStatusDialog.user.id);
     };
 
-    // Columns for Budget Accounts
-    const accountColumns = [
-        {
-            key: 'code',
-            header: 'Kode Akun (MAK)',
-            render: (row) => (
-                <div className="font-mono text-xs font-semibold text-gray-900 bg-gray-50 px-2 py-1 rounded border border-gray-200 inline-block">
-                    {row.code}
-                </div>
-            ),
-        },
+    // Columns for Users Table
+    const userColumns = [
         {
             key: 'name',
-            header: 'Nama Akun Anggaran',
+            header: 'Nama Pegawai & Email',
             render: (row) => (
                 <div>
-                    <div className="font-medium text-gray-900">{row.name}</div>
-                    {row.description && (
-                        <div className="text-xs text-gray-500 line-clamp-1">{row.description}</div>
-                    )}
+                    <div className="font-bold text-gray-900 flex items-center gap-2">
+                        {row.name}
+                        {row.primary_role === 'super_admin' && (
+                            <span className="text-[10px] bg-purple-100 text-purple-800 font-semibold px-1.5 py-0.5 rounded">
+                                Super
+                            </span>
+                        )}
+                    </div>
+                    <div className="text-xs text-gray-500 font-mono mt-0.5">{row.email}</div>
                 </div>
             ),
         },
         {
-            key: 'status',
-            header: 'Status',
-            render: (row) => <StatusBadge status={row.is_active ? 'active' : 'inactive'} />,
+            key: 'phone',
+            header: 'Kontak WhatsApp / HP',
+            render: (row) => (
+                <span className="text-xs font-mono text-gray-600">
+                    {row.phone || '-'}
+                </span>
+            ),
+        },
+        {
+            key: 'roles',
+            header: 'Peran / Hak Akses',
+            render: (row) => {
+                if (!row.roles || row.roles.length === 0) {
+                    return <span className="text-xs text-gray-400 italic">Belum ada peran</span>;
+                }
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {row.roles.map((r) => {
+                            let badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
+                            if (r.name === 'super_admin') badgeClass = 'bg-purple-100 text-purple-800 border-purple-200';
+                            if (r.name === 'pimpinan') badgeClass = 'bg-amber-100 text-amber-800 border-amber-200';
+                            if (r.name === 'operator_tim') badgeClass = 'bg-teal-100 text-teal-800 border-teal-200';
+
+                            return (
+                                <span
+                                    key={r.id}
+                                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border ${badgeClass}`}
+                                >
+                                    {r.label || r.display_name || r.name}
+                                </span>
+                            );
+                        })}
+                    </div>
+                );
+            },
+        },
+        {
+            key: 'teams',
+            header: 'Tim Ditugaskan',
+            render: (row) => {
+                if (!row.teams || row.teams.length === 0) {
+                    return <span className="text-xs text-gray-400">-</span>;
+                }
+                return (
+                    <div className="flex flex-wrap gap-1">
+                        {row.teams.map((t) => (
+                            <span
+                                key={t.id}
+                                className="text-[10px] font-mono bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded border border-gray-200"
+                            >
+                                {t.code}
+                            </span>
+                        ))}
+                    </div>
+                );
+            },
+        },
+        {
+            key: 'is_active',
+            header: 'Status Akun',
+            render: (row) => (
+                <StatusBadge status={row.is_active ? 'active' : 'inactive'} />
+            ),
         },
         {
             key: 'actions',
@@ -150,22 +233,24 @@ export const SettingsPage = () => {
                 <div className="flex items-center justify-end gap-1.5">
                     <button
                         type="button"
-                        onClick={() => handleOpenEditAccount(row)}
-                        className="p-1.5 text-gray-600 hover:text-amber-700 hover:bg-amber-50 rounded transition-colors"
-                        title="Ubah Akun"
+                        onClick={() => handleOpenEditUser(row)}
+                        className="p-1.5 text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                        title="Ubah Data Akun"
                     >
                         <IconEdit size={16} />
                     </button>
-                    {row.is_active && (
-                        <button
-                            type="button"
-                            onClick={() => setDeactivateDialog({ open: true, account: row })}
-                            className="p-1.5 text-gray-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
-                            title="Nonaktifkan Akun"
-                        >
-                            <IconTrash size={16} />
-                        </button>
-                    )}
+                    <button
+                        type="button"
+                        onClick={() => setToggleStatusDialog({ open: true, user: row })}
+                        className={`p-1.5 rounded transition-colors ${
+                            row.is_active
+                                ? 'text-gray-500 hover:text-red-700 hover:bg-red-50'
+                                : 'text-gray-500 hover:text-emerald-700 hover:bg-emerald-50'
+                        }`}
+                        title={row.is_active ? 'Nonaktifkan Akun' : 'Aktifkan Akun'}
+                    >
+                        {row.is_active ? <IconUserX size={16} /> : <IconUserCheck size={16} />}
+                    </button>
                 </div>
             ),
         },
@@ -202,8 +287,8 @@ export const SettingsPage = () => {
     return (
         <ContentContainer>
             <PageHeader
-                title="Pengaturan & Master Referensi"
-                subtitle="Penatausahaan akun anggaran DIPA, wilayah kecamatan resmi BPS Kabupaten Mojokerto, dan batas operasional"
+                title="Pengaturan Sistem & Hak Akses"
+                subtitle="Pengelolaan akun pegawai pengguna SIMATA, referensi wilayah kecamatan BPS Mojokerto, dan batas kebijakan"
             />
 
             {/* Tab Navigation */}
@@ -211,15 +296,15 @@ export const SettingsPage = () => {
                 <div className="flex gap-2">
                     <button
                         type="button"
-                        onClick={() => setActiveTab('budget_accounts')}
+                        onClick={() => setActiveTab('users')}
                         className={`flex items-center gap-2 py-3 px-4 text-sm font-medium border-b-2 transition-all ${
-                            activeTab === 'budget_accounts'
+                            activeTab === 'users'
                                 ? 'border-blue-700 text-blue-800 font-semibold bg-blue-50/50'
                                 : 'border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300'
                         }`}
                     >
-                        <IconBuildingBank size={16} />
-                        Akun Anggaran (MAK)
+                        <IconUsers size={16} />
+                        Pengguna & Hak Akses
                     </button>
                     <button
                         type="button"
@@ -248,64 +333,95 @@ export const SettingsPage = () => {
                 </div>
             </div>
 
-            {/* Tab 1: Akun Anggaran */}
-            {activeTab === 'budget_accounts' && (
+            {/* Tab 1: Pengguna & Hak Akses */}
+            {activeTab === 'users' && (
                 <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-white p-4 border border-gray-200 rounded-lg shadow-xs">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white p-4 border border-gray-200 rounded-lg shadow-xs">
                         <div>
-                            <h2 className="text-sm font-bold text-gray-900">Daftar Akun Anggaran (MAK)</h2>
-                            <p className="text-xs text-gray-500">
-                                Kode akun pembebanan anggaran DIPA untuk survei dan kegiatan statistik.
+                            <h2 className="text-sm font-bold text-gray-900">
+                                Daftar Pengguna Pegawai BPS
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                Akun pegawai terdaftar yang memiliki hak akses login dan dapat ditetapkan sebagai operator tim kerja.
                             </p>
                         </div>
-                        <Button
-                            hierarchy="primary"
-                            size="sm"
-                            prefixIcon={<IconPlus size={16} />}
-                            onClick={handleOpenCreateAccount}
-                        >
-                            Tambah Akun
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                hierarchy="primary"
+                                size="sm"
+                                prefixIcon={<IconPlus size={16} />}
+                                onClick={handleOpenCreateUser}
+                            >
+                                Tambah Akun Pegawai
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Search filter */}
+                    <div className="bg-white p-3 border border-gray-200 rounded-lg flex items-center gap-2 max-w-md">
+                        <IconSearch size={18} className="text-gray-400 shrink-0" />
+                        <input
+                            type="text"
+                            placeholder="Cari berdasarkan nama, email, atau no. telepon..."
+                            value={userSearch}
+                            onChange={(e) => {
+                                setUserSearch(e.target.value);
+                                setUserPage(1);
+                            }}
+                            className="w-full text-xs bg-transparent border-none focus:outline-none text-gray-800"
+                        />
                     </div>
 
                     <DataTable
-                        columns={accountColumns}
-                        data={accountsList}
-                        isLoading={accountsLoading}
-                        emptyTitle="Belum Ada Akun Anggaran"
-                        emptyDescription="Klik 'Tambah Akun' untuk mendaftarkan kode akun anggaran DIPA baru."
+                        columns={userColumns}
+                        data={usersList}
+                        isLoading={usersLoading}
+                        emptyTitle="Belum Ada Pengguna Terdaftar"
+                        emptyDescription="Klik 'Tambah Akun Pegawai' untuk mendaftarkan akun pegawai BPS baru."
                         pagination={{
-                            currentPage: accountsMeta.current_page,
-                            totalPages: accountsMeta.last_page,
-                            totalItems: accountsMeta.total,
-                            perPage: accountsMeta.per_page,
-                            onPageChange: (newPage) => setAccountPage(newPage),
+                            currentPage: usersMeta.current_page,
+                            totalPages: usersMeta.last_page,
+                            totalItems: usersMeta.total,
+                            perPage: usersMeta.per_page,
+                            onPageChange: (newPage) => setUserPage(newPage),
                         }}
                     />
 
-                    <BudgetAccountModal
-                        isOpen={modalOpen}
+                    <UserModal
+                        isOpen={userModalOpen}
                         onClose={() => {
-                            setModalOpen(false);
-                            setSelectedAccount(null);
+                            setUserModalOpen(false);
+                            setSelectedUser(null);
                         }}
-                        account={selectedAccount}
-                        onSubmit={handleAccountSubmit}
-                        isLoading={createAccountMutation.isPending || updateAccountMutation.isPending}
+                        user={selectedUser}
+                        roles={rolesList}
+                        teams={teamsList}
+                        onSubmit={handleUserSubmit}
+                        isLoading={createUserMutation.isPending || updateUserMutation.isPending}
                     />
 
                     <ConfirmDialog
-                        open={deactivateDialog.open}
-                        onClose={() => setDeactivateDialog({ open: false, account: null })}
-                        onConfirm={handleConfirmDeactivateAccount}
-                        title="Konfirmasi Nonaktifkan Akun Anggaran"
-                        description={`Apakah Anda yakin ingin menonaktifkan akun anggaran "${
-                            deactivateDialog.account?.name || ''
-                        }" (${deactivateDialog.account?.code || ''})?`}
-                        confirmText="Ya, Nonaktifkan"
+                        open={toggleStatusDialog.open}
+                        onClose={() => setToggleStatusDialog({ open: false, user: null })}
+                        onConfirm={handleConfirmToggleStatus}
+                        title={
+                            toggleStatusDialog.user?.is_active
+                                ? 'Nonaktifkan Akun Pegawai'
+                                : 'Aktifkan Akun Pegawai'
+                        }
+                        description={`Apakah Anda yakin ingin ${
+                            toggleStatusDialog.user?.is_active ? 'menonaktifkan' : 'mengaktifkan kembali'
+                        } akun "${toggleStatusDialog.user?.name || ''}" (${
+                            toggleStatusDialog.user?.email || ''
+                        })?`}
+                        confirmText={
+                            toggleStatusDialog.user?.is_active
+                                ? 'Ya, Nonaktifkan'
+                                : 'Ya, Aktifkan'
+                        }
                         cancelText="Batal"
-                        danger={true}
-                        isLoading={deactivateAccountMutation.isPending}
+                        danger={toggleStatusDialog.user?.is_active}
+                        isLoading={toggleStatusMutation.isPending}
                     />
                 </div>
             )}
@@ -340,21 +456,27 @@ export const SettingsPage = () => {
                         description="Parameter pembatasan transaksi penugasan dan honor bulanan per mitra (Operator Logika: OR)."
                     >
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <TextField
-                                label="Maksimal Jumlah Penugasan / Bulan"
-                                value="10"
-                                onChange={() => {}}
-                                disabled={true}
-                                helperText="Standar resmi BPS Mojokerto: 10 penugasan"
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Maksimal Jumlah Penugasan / Bulan
+                                </label>
+                                <input
+                                    type="text"
+                                    value="10"
+                                    disabled={true}
+                                    className="w-full h-10 px-3 py-2 text-sm bg-gray-100 text-gray-700 font-mono border border-gray-200 rounded-md cursor-not-allowed"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">Standar resmi BPS Mojokerto: 10 penugasan</p>
+                            </div>
 
-                            <MoneyInput
-                                label="Maksimal Total Honor / Bulan"
-                                value={4000000}
-                                onChange={() => {}}
-                                disabled={true}
-                                helperText="Standar resmi BPS Mojokerto: Rp 4.000.000"
-                            />
+                            <div>
+                                <MoneyInput
+                                    label="Maksimal Total Honor / Bulan"
+                                    value={4000000}
+                                    disabled={true}
+                                    helperText="Standar resmi BPS Mojokerto: Rp 4.000.000"
+                                />
+                            </div>
                         </div>
 
                         <div className="pt-2">

@@ -39,6 +39,15 @@ export const TeamsPage = () => {
 
     const teamsList = teamsResponse?.data || [];
 
+    const { data: usersResponse } = useQuery({
+        queryKey: ['users', 'operators'],
+        queryFn: async () => {
+            return await masterDataService.getUsers();
+        },
+    });
+
+    const usersList = usersResponse?.data || [];
+
     const createMutation = useMutation({
         mutationFn: (data) => masterDataService.createTeam(data),
         onSuccess: () => {
@@ -215,6 +224,7 @@ export const TeamsPage = () => {
                     setSelectedTeam(null);
                 }}
                 team={selectedTeam}
+                users={usersList}
                 onSubmit={handleFormSubmit}
                 isLoading={createMutation.isPending || updateMutation.isPending}
             />

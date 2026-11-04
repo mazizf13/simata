@@ -22,7 +22,7 @@ class TaskAssignmentRepository extends BaseRepository implements TaskAssignmentR
     public function paginateAssignments(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $query = $this->model->newQuery()
-            ->with(['mitra:id,mitra_code,name,phone', 'task:id,code,name,team_id', 'budgetAccount:id,code,name', 'creator:id,name'])
+            ->with(['mitra:id,mitra_code,name,phone', 'task:id,code,name,team_id', 'budgetAccount:id,code,name', 'creator:id,name', 'spk:id,spk_number,status'])
             ->filter($filters);
 
         $sortField = $filters['sort'] ?? 'start_date';

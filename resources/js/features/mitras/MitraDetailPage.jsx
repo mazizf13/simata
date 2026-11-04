@@ -11,6 +11,7 @@ import {
     EmptyState,
     AssignmentStatusBadge,
     SpkStatusBadge,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -31,6 +32,7 @@ import {
 import masterDataService from '../../services/masterDataService';
 import assignmentService from '../../services/assignmentService';
 import spkService from '../../services/spkService';
+import { formatDate, formatDateRange } from '../../utils/formatters';
 import SpkFormModal from '../spks/SpkFormModal';
 
 export const MitraDetailPage = () => {
@@ -106,11 +108,13 @@ export const MitraDetailPage = () => {
         queryKey: ['mitra-spks', id],
         queryFn: async () => {
             const res = await spkService.getMitraSpks(id);
-            return res.data;
+            return res.data || res;
         },
         enabled: activeTab === 'spk',
     });
-    const spks = spksResponse?.data || [];
+    const spks = Array.isArray(spksResponse?.data)
+        ? spksResponse.data
+        : (Array.isArray(spksResponse) ? spksResponse : []);
 
     if (isLoading) {
         return (
@@ -356,8 +360,8 @@ export const MitraDetailPage = () => {
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4 text-gray-700">
-                                                <div>{item.start_date}</div>
-                                                <div className="text-gray-400">s.d. {item.end_date}</div>
+                                                <div>{formatDate(item.start_date)}</div>
+                                                <div className="text-gray-500">s.d. {formatDate(item.end_date)}</div>
                                             </td>
                                             <td className="py-3 px-4 text-gray-700">
                                                 {item.volume} {item.snapshots?.unit}
@@ -400,22 +404,22 @@ export const MitraDetailPage = () => {
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                            <select
-                                value={selectedMonth}
-                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                                className="h-9 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500"
-                            >
-                                {months.map((m) => (
-                                    <option key={m.val} value={m.val}>
-                                        {m.label}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="w-36">
+                                <CustomSelect
+                                    value={String(selectedMonth)}
+                                    onChange={(val) => setSelectedMonth(Number(val))}
+                                    options={months.map((m) => ({
+                                        value: String(m.val),
+                                        label: m.label,
+                                    }))}
+                                    placeholder="Pilih Bulan"
+                                />
+                            </div>
                             <input
                                 type="number"
                                 value={selectedYear}
                                 onChange={(e) => setSelectedYear(Number(e.target.value))}
-                                className="h-9 w-24 px-3 text-xs bg-white border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 font-mono"
+                                className="h-10 w-24 px-3 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                             />
                         </div>
                     </div>
@@ -615,10 +619,10 @@ export const MitraDetailPage = () => {
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 text-gray-700 text-xs">
-                                                {spk.contract_date}
+                                                {formatDate(spk.contract_date)}
                                             </td>
                                             <td className="px-4 py-3 text-gray-700 text-xs whitespace-nowrap">
-                                                {spk.period_start} s/d {spk.period_end}
+                                                {formatDateRange(spk.period_start, spk.period_end)}
                                             </td>
                                             <td className="px-4 py-3 text-center">
                                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800">
@@ -654,6 +658,7 @@ export const MitraDetailPage = () => {
                 isOpen={spkModalOpen}
                 onClose={() => setSpkModalOpen(false)}
                 initialMitraId={id}
+                mitras={mitra ? [mitra] : []}
                 onSubmit={async (formData) => {
                     await spkService.createSpk(formData);
                     refetchSpks();

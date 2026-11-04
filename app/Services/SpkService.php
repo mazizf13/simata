@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\SpkStatus;
+use App\Helpers\TerbilangHelper;
 use App\Models\Mitra;
 use App\Models\Spk;
 use App\Models\TaskAssignment;
@@ -48,7 +49,7 @@ class SpkService
             'mitra.district',
             'creator:id,name,email',
             'taskAssignments' => function ($query) {
-                $query->with(['task:id,name,task_code', 'budgetAccount:id,account_code,name', 'creator:id,name'])
+                $query->with(['task:id,name,code', 'budgetAccount:id,code,name', 'creator:id,name'])
                     ->orderBy('start_date', 'asc');
             },
         ])->findOrFail($id);
@@ -107,10 +108,14 @@ class SpkService
             }
 
             // 4. Create SPK
+            $spkNumber = !empty($data['spk_number'])
+                ? trim($data['spk_number'])
+                : $this->generateNextSpkNumber($data['contract_date']);
+
             /** @var Spk $spk */
             $spk = Spk::create([
                 'mitra_id' => $mitraId,
-                'spk_number' => trim($data['spk_number']),
+                'spk_number' => $spkNumber,
                 'contract_date' => $data['contract_date'],
                 'period_start' => $periodStart,
                 'period_end' => $periodEnd,
@@ -461,5 +466,47 @@ class SpkService
 
             return $this->getSpkById($spk->id);
         });
+    }
+
+    /**
+     * Auto-generate next SPK number in standard format: 001/3516/SPK.{N}/{ROMAN_MONTH}/{YEAR}
+     */
+    public function generateNextSpkNumber(string|Carbon|null $date = null): string
+    {
+        $carbonDate = $date ? Carbon::parse($date) : now();
+        $year = $carbonDate->year;
+        $month = $carbonDate->month;
+        $romanMonth = TerbilangHelper::romanMonth($month);
+
+        // Cari nomor urut SPK tertinggi untuk bulan dan tahun ini
+        $spkNumbers = Spk::query()
+            ->whereYear('contract_date', $year)
+            ->whereMonth('contract_date', $month)
+            ->pluck('spk_number');
+
+        $maxSeq = 0;
+        foreach ($spkNumbers as $num) {
+            if (preg_match('/SPK\.(\d+)/i', $num, $matches)) {
+                $maxSeq = max($maxSeq, (int) $matches[1]);
+            }
+        }
+
+        // Jika tidak ditemukan berdasarkan contract_date, coba cocokkan format pola string
+        if ($maxSeq === 0) {
+            $otherSpks = Spk::query()
+                ->where('spk_number', 'like', "%/{$romanMonth}/{$year}%")
+                ->orWhere('spk_number', 'like', "%/{$year}%")
+                ->pluck('spk_number');
+
+            foreach ($otherSpks as $num) {
+                if (preg_match('/SPK\.(\d+)\/' . preg_quote($romanMonth, '/') . '\/' . $year . '/i', $num, $matches)) {
+                    $maxSeq = max($maxSeq, (int) $matches[1]);
+                }
+            }
+        }
+
+        $nextSeq = $maxSeq + 1;
+
+        return "001/3516/SPK.{$nextSeq}/{$romanMonth}/{$year}";
     }
 }

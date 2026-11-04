@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconTrash, IconCheck, IconX, IconUserPlus } from '@tabler/icons-react';
+import Combobox from './Combobox';
 
 export const BulkAssignmentTable = ({
     items = [],
@@ -19,32 +20,45 @@ export const BulkAssignmentTable = ({
         simMap[s.mitra_id] = s;
     });
 
+    const unassignedMitras = availableMitras.filter(
+        (m) => !items.some((it) => it.mitra_id === m.id)
+    );
+
     return (
         <div className="space-y-3">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <span className="text-sm font-semibold text-gray-800">
                     Daftar Mitra yang Ditugaskan ({items.length} Orang)
                 </span>
-                <div className="flex gap-2">
-                    <select
-                        onChange={(e) => {
-                            if (e.target.value) {
-                                onAddItem(Number(e.target.value));
-                                e.target.value = '';
-                            }
+                <div className="w-full sm:w-80">
+                    <Combobox
+                        placeholder="+ Cari & Tambah Mitra..."
+                        searchPlaceholder="Ketik nama, SOBAT ID, atau kec..."
+                        options={unassignedMitras}
+                        value=""
+                        onChange={(val) => {
+                            if (val) onAddItem(Number(val));
                         }}
                         disabled={disabled}
-                        className="text-xs h-8 px-2.5 bg-white border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
-                    >
-                        <option value="">+ Tambah Mitra ke Alokasi...</option>
-                        {availableMitras
-                            .filter((m) => !items.some((it) => it.mitra_id === m.id))
-                            .map((m) => (
-                                <option key={m.id} value={m.id}>
-                                    [{m.mitra_code}] {m.name}
-                                </option>
-                            ))}
-                    </select>
+                        clearable={false}
+                        filterFn={(m, q) =>
+                            (m.name || '').toLowerCase().includes(q) ||
+                            (m.mitra_code || '').toLowerCase().includes(q) ||
+                            (m.district?.name || '').toLowerCase().includes(q)
+                        }
+                        renderOption={(m) => (
+                            <div className="flex items-center justify-between gap-2 py-0.5">
+                                <span className="font-medium text-gray-900 truncate">
+                                    {m.name}
+                                </span>
+                                <span className="font-mono text-xs px-1.5 py-0.2 rounded bg-blue-50 text-blue-800 border border-blue-200 shrink-0">
+                                    {m.mitra_code}
+                                </span>
+                            </div>
+                        )}
+                        getOptionLabel={(m) => `[${m.mitra_code}] ${m.name}`}
+                        getOptionValue={(m) => m.id}
+                    />
                 </div>
             </div>
 

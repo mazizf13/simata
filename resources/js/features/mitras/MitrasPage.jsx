@@ -8,6 +8,7 @@ import {
     DataTable,
     StatusBadge,
     ConfirmDialog,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -16,9 +17,13 @@ import {
     IconEdit,
     IconUserOff,
     IconFilter,
+    IconUpload,
+    IconDownload,
+    IconFileSpreadsheet,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
 import MitraFormModal from './MitraFormModal';
+import MitraImportModal from './MitraImportModal';
 
 export const MitrasPage = () => {
     const navigate = useNavigate();
@@ -34,6 +39,8 @@ export const MitrasPage = () => {
     // Modal / Drawer state
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedMitra, setSelectedMitra] = useState(null);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [deactivateDialog, setDeactivateDialog] = useState({
         open: false,
         mitra: null,
@@ -126,6 +133,21 @@ export const MitrasPage = () => {
         await deactivateMutation.mutateAsync(deactivateDialog.mitra.id);
     };
 
+    const handleExportExcel = async () => {
+        try {
+            setIsExporting(true);
+            await masterDataService.exportMitras({
+                search: search.trim() || undefined,
+                district_id: selectedDistrict || undefined,
+                status: selectedStatus || undefined,
+            });
+        } catch (err) {
+            console.error('Gagal mengekspor data mitra:', err);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     // Columns configuration
     const columns = [
         {
@@ -215,14 +237,33 @@ export const MitrasPage = () => {
                 title="Data Mitra Statistik"
                 subtitle="Master data terpusat mitra survei dan sensus BPS Kabupaten Mojokerto (Kode Wilayah 3516)"
                 actions={
-                    <Button
-                        hierarchy="primary"
-                        size="md"
-                        prefixIcon={<IconUserPlus size={16} />}
-                        onClick={handleOpenCreate}
-                    >
-                        Tambah Mitra
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            hierarchy="secondary"
+                            size="md"
+                            prefixIcon={<IconDownload size={16} />}
+                            onClick={handleExportExcel}
+                            disabled={isExporting}
+                        >
+                            {isExporting ? 'Mengekspor...' : 'Ekspor Excel'}
+                        </Button>
+                        <Button
+                            hierarchy="secondary"
+                            size="md"
+                            prefixIcon={<IconUpload size={16} />}
+                            onClick={() => setImportModalOpen(true)}
+                        >
+                            Impor Excel
+                        </Button>
+                        <Button
+                            hierarchy="primary"
+                            size="md"
+                            prefixIcon={<IconUserPlus size={16} />}
+                            onClick={handleOpenCreate}
+                        >
+                            Tambah Mitra
+                        </Button>
+                    </div>
                 }
             />
 
@@ -249,39 +290,41 @@ export const MitrasPage = () => {
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Kecamatan (3516)
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedDistrict}
-                            onChange={(e) => {
-                                setSelectedDistrict(e.target.value);
+                            onChange={(val) => {
+                                setSelectedDistrict(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Kecamatan (18)</option>
-                            {districts.map((d) => (
-                                <option key={d.id} value={d.id}>
-                                    [{d.code}] {d.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="Semua Kecamatan (18)"
+                            options={[
+                                { value: '', label: 'Semua Kecamatan (18)' },
+                                ...districts.map((d) => ({
+                                    value: d.id,
+                                    label: `[${d.code}] ${d.name}`,
+                                    badge: d.code,
+                                })),
+                            ]}
+                        />
                     </div>
 
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Status Keaktifan
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedStatus}
-                            onChange={(e) => {
-                                setSelectedStatus(e.target.value);
+                            onChange={(val) => {
+                                setSelectedStatus(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="active">Aktif</option>
-                            <option value="inactive">Nonaktif</option>
-                        </select>
+                            placeholder="Semua Status"
+                            options={[
+                                { value: '', label: 'Semua Status' },
+                                { value: 'active', label: 'Aktif' },
+                                { value: 'inactive', label: 'Nonaktif' },
+                            ]}
+                        />
                     </div>
                 </div>
             </div>
@@ -298,11 +341,16 @@ export const MitrasPage = () => {
                         : 'Belum ada data mitra terdaftar. Klik "Tambah Mitra" untuk mulai mendata mitra statistik.'
                 }
                 pagination={{
-                    currentPage: meta.current_page,
-                    totalPages: meta.last_page,
-                    totalItems: meta.total,
-                    perPage: meta.per_page,
+                    currentPage: meta.current_page || 1,
+                    totalPages: meta.last_page || 1,
+                    totalItems: meta.total || 0,
+                    perPage: perPage,
+                    pageSizeOptions: [10, 15, 25, 50],
                     onPageChange: (newPage) => setPage(newPage),
+                    onPageSizeChange: (newSize) => {
+                        setPerPage(newSize);
+                        setPage(1);
+                    },
                 }}
             />
 
@@ -317,6 +365,15 @@ export const MitrasPage = () => {
                 districts={districts}
                 onSubmit={handleFormSubmit}
                 isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+
+            {/* Import Excel Modal */}
+            <MitraImportModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ['mitras'] });
+                }}
             />
 
             {/* Deactivate Confirmation Dialog */}

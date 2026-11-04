@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
-import { FormSection, MoneyInput } from '../../components';
+import { FormSection, MoneyInput, CustomSelect } from '../../components';
+import { IconSparkles, IconRefresh } from '@tabler/icons-react';
+import { masterDataService } from '../../services/masterDataService';
 
 export const TaskFormModal = ({
     isOpen,
@@ -12,6 +14,9 @@ export const TaskFormModal = ({
     isLoading = false,
 }) => {
     const isEdit = Boolean(task);
+
+    const safeTeams = Array.isArray(teams) ? teams : (Array.isArray(teams?.data) ? teams.data : []);
+    const safeBudgetAccounts = Array.isArray(budgetAccounts) ? budgetAccounts : (Array.isArray(budgetAccounts?.data) ? budgetAccounts.data : []);
 
     const [formData, setFormData] = useState({
         code: '',
@@ -25,8 +30,31 @@ export const TaskFormModal = ({
     });
 
     const [errors, setErrors] = useState({});
+    const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+
+    const fetchAutoCode = useCallback(async (targetTeamId) => {
+        if (!targetTeamId) return;
+        try {
+            setIsGeneratingCode(true);
+            const res = await masterDataService.getNextTaskCode(targetTeamId);
+            const generated = res?.data?.code || res?.code;
+            if (generated) {
+                setFormData((prev) => ({ ...prev, code: generated }));
+            }
+        } catch (err) {
+            console.warn('Gagal mengambil kode kegiatan otomatis:', err);
+            const selectedTeam = safeTeams.find((t) => Number(t.id) === Number(targetTeamId));
+            const teamCode = selectedTeam ? selectedTeam.code.toUpperCase() : 'BPS';
+            const year = new Date().getFullYear();
+            setFormData((prev) => ({ ...prev, code: `SURV-${teamCode}-${year}-01` }));
+        } finally {
+            setIsGeneratingCode(false);
+        }
+    }, [safeTeams]);
 
     useEffect(() => {
+        if (!isOpen) return;
+
         if (task) {
             setFormData({
                 code: task.code || '',
@@ -39,24 +67,35 @@ export const TaskFormModal = ({
                 is_active: typeof task.is_active === 'boolean' ? task.is_active : true,
             });
         } else {
+            const defaultTeamId = safeTeams.length > 0 ? safeTeams[0].id : '';
             setFormData({
                 code: '',
                 name: '',
-                team_id: teams.length > 0 ? teams[0].id : '',
+                team_id: defaultTeamId,
                 default_unit: 'Dokumen',
                 default_rate: 50000,
-                default_budget_account_id: budgetAccounts.length > 0 ? budgetAccounts[0].id : '',
+                default_budget_account_id: safeBudgetAccounts.length > 0 ? safeBudgetAccounts[0].id : '',
                 description: '',
                 is_active: true,
             });
+
+            // Otomatis buat kode kegiatan per tim yang dipilih
+            if (defaultTeamId) {
+                fetchAutoCode(defaultTeamId);
+            }
         }
         setErrors({});
-    }, [task, isOpen, teams, budgetAccounts]);
+    }, [task, isOpen]); // Hanya dijalankan saat modal dibuka atau task diedit
 
     const handleChange = (field, value) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors((prev) => ({ ...prev, [field]: null }));
+        }
+
+        // Jika mengubah tim kerja pada form baru, perbarui kode kegiatan otomatis per tim
+        if (field === 'team_id' && !isEdit && value) {
+            fetchAutoCode(value);
         }
     };
 
@@ -97,26 +136,46 @@ export const TaskFormModal = ({
             title={isEdit ? 'Ubah Katalog Kegiatan Survei' : 'Tambah Kegiatan Survei Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     <FormSection
                         title="Identitas Kegiatan"
                         description="Kode dan nama survei/kegiatan statistik BPS."
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
+                                <div className="flex items-center justify-between mb-1 h-5">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Kode Kegiatan <span className="text-red-500">*</span>
+                                    </label>
+                                    {!isEdit && (
+                                        <button
+                                            type="button"
+                                            onClick={() => fetchAutoCode(formData.team_id)}
+                                            disabled={isLoading || isGeneratingCode}
+                                            className="text-xs text-blue-600 hover:text-blue-800 font-medium inline-flex items-center gap-1 disabled:opacity-50"
+                                            title="Buat kode kegiatan otomatis per tim"
+                                        >
+                                            <IconRefresh size={13} className={isGeneratingCode ? 'animate-spin' : ''} />
+                                            <span>{isGeneratingCode ? 'Membuat...' : 'Buat Otomatis'}</span>
+                                        </button>
+                                    )}
+                                </div>
                                 <TextField
-                                    label="Kode Kegiatan *"
                                     placeholder="Contoh: SURV-PROD-2026-01"
                                     value={formData.code}
-                                    onChange={(val) => handleChange('code', val)}
+                                    onChange={(val) => handleChange('code', val.toUpperCase())}
                                     status={errors.code ? 'error' : 'neutral'}
                                     statusMessage={errors.code}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isGeneratingCode}
                                 />
                             </div>
                             <div>
+                                <div className="flex items-center mb-1 h-5">
+                                    <label className="text-sm font-medium text-gray-700">
+                                        Nama Kegiatan <span className="text-red-500">*</span>
+                                    </label>
+                                </div>
                                 <TextField
-                                    label="Nama Kegiatan *"
                                     placeholder="Contoh: Survei Ubinan Padi Subround 1"
                                     value={formData.name}
                                     onChange={(val) => handleChange('name', val)}
@@ -128,27 +187,22 @@ export const TaskFormModal = ({
                         </div>
 
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Tim Kerja Penanggung Jawab *
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Tim Kerja Penanggung Jawab *"
                                 value={formData.team_id}
-                                onChange={(e) => handleChange('team_id', e.target.value)}
-                                className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                    errors.team_id ? 'border-red-500' : 'border-gray-300'
-                                }`}
+                                onChange={(val) => handleChange('team_id', val)}
+                                placeholder="-- Pilih Tim Kerja --"
+                                options={[
+                                    { value: '', label: '-- Pilih Tim Kerja --' },
+                                    ...safeTeams.map((t) => ({
+                                        value: t.id,
+                                        label: `[${t.code}] ${t.name}`,
+                                        badge: t.code,
+                                    })),
+                                ]}
+                                error={errors.team_id}
                                 disabled={isLoading}
-                            >
-                                <option value="">-- Pilih Tim Kerja --</option>
-                                {teams.map((t) => (
-                                    <option key={t.id} value={t.id}>
-                                        [{t.code}] {t.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.team_id && (
-                                <p className="text-xs text-red-600 mt-1">{errors.team_id}</p>
-                            )}
+                            />
                         </div>
                     </FormSection>
 
@@ -158,31 +212,25 @@ export const TaskFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Satuan Beban Tugas *
-                                </label>
-                                <input
-                                    type="text"
-                                    list="unit-suggestions"
+                                <CustomSelect
+                                    label="Satuan Beban Tugas *"
                                     value={formData.default_unit}
-                                    onChange={(e) => handleChange('default_unit', e.target.value)}
-                                    placeholder="Contoh: Dokumen, Rumah Tangga..."
-                                    className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.default_unit ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    onChange={(val) => handleChange('default_unit', val)}
+                                    placeholder="-- Pilih Satuan Beban --"
+                                    options={[
+                                        { value: 'Dokumen', label: 'Dokumen' },
+                                        { value: 'Rumah Tangga', label: 'Rumah Tangga' },
+                                        { value: 'Responden', label: 'Responden' },
+                                        { value: 'Blok Sensus', label: 'Blok Sensus' },
+                                        { value: 'Perusahaan', label: 'Perusahaan' },
+                                        { value: 'Paket', label: 'Paket' },
+                                        { value: 'Desa', label: 'Desa / Kelurahan' },
+                                        { value: 'Kecamatan', label: 'Kecamatan' },
+                                        { value: 'SLS', label: 'Satuan Lingkungan Setempat (SLS)' },
+                                    ]}
+                                    error={errors.default_unit}
                                     disabled={isLoading}
                                 />
-                                <datalist id="unit-suggestions">
-                                    <option value="Dokumen" />
-                                    <option value="Rumah Tangga" />
-                                    <option value="Responden" />
-                                    <option value="Blok Sensus" />
-                                    <option value="Perusahaan" />
-                                    <option value="Paket" />
-                                </datalist>
-                                {errors.default_unit && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.default_unit}</p>
-                                )}
                             </div>
 
                             <div>
@@ -199,22 +247,21 @@ export const TaskFormModal = ({
                         </div>
 
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Akun Anggaran Beban (MAK / Akun)
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Akun Anggaran Beban (MAK / Akun)"
                                 value={formData.default_budget_account_id}
-                                onChange={(e) => handleChange('default_budget_account_id', e.target.value)}
-                                className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(val) => handleChange('default_budget_account_id', val)}
+                                placeholder="-- Tanpa Akun Anggaran Default --"
+                                options={[
+                                    { value: '', label: '-- Tanpa Akun Anggaran Default --' },
+                                    ...safeBudgetAccounts.map((a) => ({
+                                        value: a.id,
+                                        label: `${a.code} — ${a.name}`,
+                                        badge: a.code,
+                                    })),
+                                ]}
                                 disabled={isLoading}
-                            >
-                                <option value="">-- Tanpa Akun Anggaran Default --</option>
-                                {budgetAccounts.map((a) => (
-                                    <option key={a.id} value={a.id}>
-                                        {a.code} — {a.name}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </div>
                     </FormSection>
 
@@ -222,18 +269,17 @@ export const TaskFormModal = ({
                         title="Status & Deskripsi"
                         description="Status keaktifan katalog kegiatan survei."
                     >
-                        <div className="flex items-center gap-2 mb-4">
-                            <input
-                                type="checkbox"
-                                id="task-is-active"
-                                checked={formData.is_active}
-                                onChange={(e) => handleChange('is_active', e.target.checked)}
-                                className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                        <div className="mb-4">
+                            <CustomSelect
+                                label="Status Keaktifan Kegiatan *"
+                                value={formData.is_active ? 1 : 0}
+                                onChange={(val) => handleChange('is_active', Number(val) === 1)}
+                                options={[
+                                    { value: 1, label: 'Aktif (Tersedia untuk pembuatan penugasan baru)', badge: 'Aktif' },
+                                    { value: 0, label: 'Nonaktif (Tidak dapat dipilih dalam penugasan)', badge: 'Nonaktif' },
+                                ]}
                                 disabled={isLoading}
                             />
-                            <label htmlFor="task-is-active" className="text-sm font-medium text-gray-800">
-                                Aktif (Tersedia untuk pembuatan penugasan baru)
-                            </label>
                         </div>
 
                         <TextArea

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, TextField, TextArea } from '@idds/react';
-import { FormSection } from '../../components';
+import { FormSection, CustomSelect } from '../../components';
 
 export const MitraFormModal = ({
     isOpen,
@@ -101,7 +101,7 @@ export const MitraFormModal = ({
             title={isEdit ? 'Ubah Data Mitra Statistik' : 'Tambah Mitra Statistik Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     <FormSection
                         title="Identitas & Kode Mitra"
                         description="Kode mitra bersifat unik untuk penatausahaan dan identifikasi administrasi resmi BPS."
@@ -141,27 +141,22 @@ export const MitraFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Kecamatan Domisili (Wilayah 3516) *
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Kecamatan Domisili (Wilayah 3516) *"
                                     value={formData.district_id}
-                                    onChange={(e) => handleChange('district_id', e.target.value)}
-                                    className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.district_id ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    onChange={(val) => handleChange('district_id', val)}
+                                    placeholder="-- Pilih Kecamatan --"
+                                    options={[
+                                        { value: '', label: '-- Pilih Kecamatan --' },
+                                        ...districts.map((d) => ({
+                                            value: d.id,
+                                            label: `[${d.code}] ${d.name}`,
+                                            badge: d.code,
+                                        })),
+                                    ]}
+                                    error={errors.district_id}
                                     disabled={isLoading}
-                                >
-                                    <option value="">-- Pilih Kecamatan --</option>
-                                    {districts.map((d) => (
-                                        <option key={d.id} value={d.id}>
-                                            [{d.code}] {d.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {errors.district_id && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.district_id}</p>
-                                )}
+                                />
                             </div>
 
                             <div>
@@ -220,18 +215,16 @@ export const MitraFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Status Keaktifan
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Status Keaktifan"
                                     value={formData.status}
-                                    onChange={(e) => handleChange('status', e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => handleChange('status', val)}
+                                    options={[
+                                        { value: 'active', label: 'Aktif (Tersedia untuk Penugasan)', badge: 'Aktif' },
+                                        { value: 'inactive', label: 'Nonaktif (Tidak Ditugaskan)', badge: 'Nonaktif' },
+                                    ]}
                                     disabled={isLoading}
-                                >
-                                    <option value="active">Aktif (Tersedia untuk Penugasan)</option>
-                                    <option value="inactive">Nonaktif (Tidak Ditugaskan)</option>
-                                </select>
+                                />
                             </div>
                         </div>
 

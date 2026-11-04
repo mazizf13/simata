@@ -43,14 +43,32 @@ class TeamService
 
     public function createTeam(array $data): Team
     {
+        $userIds = $data['user_ids'] ?? null;
+        unset($data['user_ids']);
+
         /** @var Team */
-        return $this->teamRepository->create($data);
+        $team = $this->teamRepository->create($data);
+
+        if (is_array($userIds)) {
+            $team->users()->sync($userIds);
+        }
+
+        return $team->load('users:id,name,email,phone');
     }
 
     public function updateTeam(int|string $id, array $data): Team
     {
+        $userIds = $data['user_ids'] ?? null;
+        unset($data['user_ids']);
+
         /** @var Team */
-        return $this->teamRepository->update($id, $data);
+        $team = $this->teamRepository->update($id, $data);
+
+        if (is_array($userIds)) {
+            $team->users()->sync($userIds);
+        }
+
+        return $team->load('users:id,name,email,phone');
     }
 
     public function deactivateTeam(int|string $id): Team

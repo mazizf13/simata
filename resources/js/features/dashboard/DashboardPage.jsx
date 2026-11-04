@@ -9,6 +9,7 @@ import {
     CardContainer,
     LoadingState,
     ErrorState,
+    CustomSelect,
 } from '../../components';
 import {
     IconUsers,
@@ -61,11 +62,11 @@ export const DashboardPage = () => {
                 month: selectedMonth,
                 team_id: selectedTeamId || undefined,
             });
-            return res.data;
+            return res.data || res;
         },
     });
 
-    const stats = dashboardResponse?.data;
+    const stats = dashboardResponse?.data || dashboardResponse;
     const metrics = stats?.metrics || {
         total_active_mitras: 0,
         total_assignments: 0,
@@ -82,7 +83,7 @@ export const DashboardPage = () => {
     return (
         <ContentContainer>
             {/* Page Header */}
-            <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="mb-6 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">
                         Dashboard Operasional & Pemantauan
@@ -92,47 +93,52 @@ export const DashboardPage = () => {
                     </p>
                 </div>
 
-                {/* Filter Toolbar */}
-                <div className="flex flex-wrap items-center gap-2 bg-white p-2 rounded-lg border border-gray-200 shadow-xs">
-                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium px-2">
-                        <IconCalendar size={16} />
+                {/* Filter Toolbar - strictly inline, compact, and non-wrapping */}
+                <div className="flex items-center gap-2 bg-white p-1.5 rounded-lg border border-gray-200 shadow-xs shrink-0 self-start xl:self-auto">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium px-1.5 shrink-0">
+                        <IconCalendar size={15} />
                         <span>Periode:</span>
                     </div>
 
-                    <select
-                        value={selectedMonth}
-                        onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {MONTH_NAMES.map((name, idx) => (
-                            <option key={idx + 1} value={idx + 1}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-28 shrink-0">
+                        <CustomSelect
+                            size="sm"
+                            value={String(selectedMonth)}
+                            onChange={(val) => setSelectedMonth(Number(val))}
+                            options={MONTH_NAMES.map((name, idx) => ({
+                                value: String(idx + 1),
+                                label: name,
+                            }))}
+                            placeholder="Pilih Bulan"
+                        />
+                    </div>
 
-                    <select
-                        value={selectedYear}
-                        onChange={(e) => setSelectedYear(Number(e.target.value))}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value={2025}>2025</option>
-                        <option value={2026}>2026</option>
-                        <option value={2027}>2027</option>
-                    </select>
+                    <div className="w-20 shrink-0">
+                        <CustomSelect
+                            size="sm"
+                            value={String(selectedYear)}
+                            onChange={(val) => setSelectedYear(Number(val))}
+                            options={[
+                                { value: '2025', label: '2025' },
+                                { value: '2026', label: '2026' },
+                                { value: '2027', label: '2027' },
+                            ]}
+                            placeholder="Tahun"
+                        />
+                    </div>
 
-                    <select
-                        value={selectedTeamId}
-                        onChange={(e) => setSelectedTeamId(e.target.value)}
-                        className="h-9 px-2.5 py-1 text-xs bg-gray-50 border border-gray-300 rounded font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Tim Kerja</option>
-                        {teams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-44 shrink-0">
+                        <CustomSelect
+                            size="sm"
+                            value={selectedTeamId}
+                            onChange={(val) => setSelectedTeamId(val)}
+                            options={[
+                                { value: '', label: 'Semua Tim Kerja' },
+                                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+                            ]}
+                            placeholder="Semua Tim Kerja"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -183,7 +189,7 @@ export const DashboardPage = () => {
                         {/* 3. Total Nilai Honor */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs">
                             <div className="flex items-center justify-between text-gray-500 mb-2">
-                                <span className="text-xs font-semibold uppercase tracking-wider">Total Nilai Honor</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Total Honor</span>
                                 <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded">
                                     <IconCash size={16} />
                                 </div>
@@ -289,7 +295,7 @@ export const DashboardPage = () => {
 
                                 {mitrasNearLimit.length === 0 ? (
                                     <div className="p-8 text-center text-sm text-gray-500">
-                                        Tidak ada mitra yang mendekati batas ( $\ge$ 8 tugas atau $\ge$ Rp 3.200.000 ) pada periode ini.
+                                        Tidak ada mitra yang mendekati batas (≥ 8 tugas atau ≥ Rp 3.200.000) pada periode ini.
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">

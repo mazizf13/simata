@@ -34,7 +34,9 @@ export const AttachAssignmentsModal = ({
                 mitra_id: spk.mitra_id,
                 per_page: 50,
             });
-            const allAssignments = res.data?.data || [];
+            const allAssignments = Array.isArray(res.data)
+                ? res.data
+                : (Array.isArray(res) ? res : (res.data?.data || []));
 
             // Filter out assignments that are cancelled or already attached to this SPK
             const available = allAssignments.filter(
@@ -88,6 +90,7 @@ export const AttachAssignmentsModal = ({
 
     return (
         <Modal
+            open={isOpen}
             isOpen={isOpen}
             onClose={onClose}
             title={`Lampirkan Penugasan ke SPK: ${spk?.spk_number || ''}`}

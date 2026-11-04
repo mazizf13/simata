@@ -7,6 +7,7 @@ import {
     DataTable,
     AssignmentStatusBadge,
     CancelAssignmentModal,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -23,6 +24,7 @@ import {
 import assignmentService from '../../services/assignmentService';
 import masterDataService from '../../services/masterDataService';
 import reportService from '../../services/reportService';
+import { formatDate, formatDateRange } from '../../utils/formatters';
 import AssignmentFormModal from './AssignmentFormModal';
 import BulkAssignmentModal from './BulkAssignmentModal';
 import AssignmentCalendarView from './AssignmentCalendarView';
@@ -201,8 +203,8 @@ export const AssignmentsPage = () => {
             header: 'Jadwal Penugasan',
             render: (row) => (
                 <div className="text-xs text-gray-700">
-                    <div>{row.start_date}</div>
-                    <div className="text-gray-400">s.d. {row.end_date}</div>
+                    <div>{formatDate(row.start_date)}</div>
+                    <div className="text-gray-500">s.d. {formatDate(row.end_date)}</div>
                 </div>
             ),
         },
@@ -382,43 +384,45 @@ export const AssignmentsPage = () => {
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                                     Filter Kegiatan Survei
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedTaskId}
-                                    onChange={(e) => {
-                                        setSelectedTaskId(e.target.value);
+                                    onChange={(val) => {
+                                        setSelectedTaskId(val);
                                         setPage(1);
                                     }}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Semua Kegiatan</option>
-                                    {tasks.map((t) => (
-                                        <option key={t.id} value={t.id}>
-                                            {t.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    placeholder="Semua Kegiatan"
+                                    options={[
+                                        { value: '', label: 'Semua Kegiatan' },
+                                        ...tasks.map((t) => ({
+                                            value: t.id,
+                                            label: t.name,
+                                            badge: t.code,
+                                        })),
+                                    ]}
+                                />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                                     Status Alur Kerja
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={selectedStatus}
-                                    onChange={(e) => {
-                                        setSelectedStatus(e.target.value);
+                                    onChange={(val) => {
+                                        setSelectedStatus(val);
                                         setPage(1);
                                     }}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                >
-                                    <option value="">Semua Status</option>
-                                    <option value="draft">Draf</option>
-                                    <option value="pending_approval">Menunggu Persetujuan</option>
-                                    <option value="approved">Disetujui</option>
-                                    <option value="active">Aktif Berjalan</option>
-                                    <option value="completed">Selesai</option>
-                                    <option value="cancelled">Dibatalkan</option>
-                                </select>
+                                    placeholder="Semua Status"
+                                    options={[
+                                        { value: '', label: 'Semua Status' },
+                                        { value: 'draft', label: 'Draf' },
+                                        { value: 'pending_approval', label: 'Menunggu Persetujuan' },
+                                        { value: 'approved', label: 'Disetujui' },
+                                        { value: 'active', label: 'Aktif Berjalan' },
+                                        { value: 'completed', label: 'Selesai' },
+                                        { value: 'cancelled', label: 'Dibatalkan' },
+                                    ]}
+                                />
                             </div>
                         </div>
                     </div>

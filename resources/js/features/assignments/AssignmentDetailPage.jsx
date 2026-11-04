@@ -29,6 +29,7 @@ import {
 } from '@tabler/icons-react';
 import assignmentService from '../../services/assignmentService';
 import masterDataService from '../../services/masterDataService';
+import { formatDate } from '../../utils/formatters';
 import AssignmentFormModal from './AssignmentFormModal';
 
 export const AssignmentDetailPage = () => {
@@ -410,7 +411,7 @@ export const AssignmentDetailPage = () => {
                                 </span>
                                 <span className="font-medium text-gray-900 mt-0.5 flex items-center gap-1">
                                     <IconCalendar size={14} className="text-blue-600" />
-                                    {assignment.start_date}
+                                    {formatDate(assignment.start_date)}
                                 </span>
                             </div>
                             <div>
@@ -419,12 +420,12 @@ export const AssignmentDetailPage = () => {
                                 </span>
                                 <span className="font-medium text-gray-900 mt-0.5 flex items-center gap-1">
                                     <IconCalendar size={14} className="text-gray-400" />
-                                    {assignment.end_date}
+                                    {formatDate(assignment.end_date)}
                                 </span>
                             </div>
                             <div className="pt-2 border-t border-gray-100 text-xs text-gray-600">
                                 <span className="font-semibold text-gray-700 block">Kaidah Honor:</span>
-                                Seluruh nilai Rp dihitung pada bulan tanggal mulai ({assignment.start_date?.slice(0, 7)}).
+                                Seluruh nilai Rp dihitung pada bulan tanggal mulai ({formatDate(assignment.start_date)}).
                             </div>
                         </div>
                     </CardContainer>
@@ -435,14 +436,14 @@ export const AssignmentDetailPage = () => {
                             <div>
                                 <span className="text-gray-400 block">Dibuat oleh:</span>
                                 <span className="font-medium text-gray-800">
-                                    {assignment.created_by?.name || '-'} ({assignment.created_at?.slice(0, 10)})
+                                    {assignment.created_by?.name || '-'} ({formatDate(assignment.created_at)})
                                 </span>
                             </div>
                             {assignment.approved_by && (
                                 <div>
                                     <span className="text-gray-400 block">Disetujui oleh:</span>
                                     <span className="font-medium text-emerald-800">
-                                        {assignment.approved_by.name} ({assignment.approved_at?.slice(0, 10)})
+                                        {assignment.approved_by.name} ({formatDate(assignment.approved_at)})
                                     </span>
                                 </div>
                             )}

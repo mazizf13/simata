@@ -53,6 +53,19 @@ class TaskController extends Controller
     }
 
     /**
+     * Get auto-generated next task code for a given team.
+     */
+    public function nextCode(Request $request): JsonResponse
+    {
+        Gate::authorize('create', Task::class);
+
+        $teamId = $request->query('team_id') ? (int) $request->query('team_id') : null;
+        $code = $this->taskService->generateNextCode($teamId);
+
+        return $this->ok(['code' => $code], 'Kode kegiatan otomatis berhasil dibuat.');
+    }
+
+    /**
      * Get active tasks (for assignment dropdowns, etc.).
      */
     public function active(Request $request): JsonResponse

@@ -6,6 +6,7 @@ import {
     DataTable,
     StatusBadge,
     ConfirmDialog,
+    CustomSelect,
 } from '../../components';
 import { Button } from '@idds/react';
 import {
@@ -40,19 +41,19 @@ export const TasksPage = () => {
         queryKey: ['teams', 'active'],
         queryFn: async () => {
             const res = await masterDataService.getActiveTeams();
-            return res.data || [];
+            return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         },
     });
-    const teams = teamsData || [];
+    const teams = Array.isArray(teamsData) ? teamsData : (Array.isArray(teamsData?.data) ? teamsData.data : []);
 
     const { data: accountsData } = useQuery({
         queryKey: ['budget-accounts', 'active'],
         queryFn: async () => {
             const res = await masterDataService.getActiveBudgetAccounts();
-            return res.data || [];
+            return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         },
     });
-    const budgetAccounts = accountsData || [];
+    const budgetAccounts = Array.isArray(accountsData) ? accountsData : (Array.isArray(accountsData?.data) ? accountsData.data : []);
 
     // Fetch tasks
     const {
@@ -259,39 +260,41 @@ export const TasksPage = () => {
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Tim Penanggung Jawab
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedTeam}
-                            onChange={(e) => {
-                                setSelectedTeam(e.target.value);
+                            onChange={(val) => {
+                                setSelectedTeam(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Tim Kerja</option>
-                            {teams.map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    [{t.code}] {t.name}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="Semua Tim Kerja"
+                            options={[
+                                { value: '', label: 'Semua Tim Kerja' },
+                                ...teams.map((t) => ({
+                                    value: t.id,
+                                    label: `[${t.code}] ${t.name}`,
+                                    badge: t.code,
+                                })),
+                            ]}
+                        />
                     </div>
 
                     <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1">
                             Status Kegiatan
                         </label>
-                        <select
+                        <CustomSelect
                             value={selectedStatus}
-                            onChange={(e) => {
-                                setSelectedStatus(e.target.value);
+                            onChange={(val) => {
+                                setSelectedStatus(val);
                                 setPage(1);
                             }}
-                            className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            <option value="">Semua Status</option>
-                            <option value="1">Aktif</option>
-                            <option value="0">Nonaktif</option>
-                        </select>
+                            placeholder="Semua Status"
+                            options={[
+                                { value: '', label: 'Semua Status' },
+                                { value: '1', label: 'Aktif' },
+                                { value: '0', label: 'Nonaktif' },
+                            ]}
+                        />
                     </div>
                 </div>
             </div>

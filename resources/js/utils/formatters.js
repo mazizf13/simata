@@ -45,8 +45,9 @@ export const formatDate = formatDateIndo;
 export const formatDateRange = (startDate, endDate) => {
     if (!startDate && !endDate) return '-';
     if (startDate && !endDate) return formatDateIndo(startDate);
-    if (!startDate && endDate) return `s/d ${formatDateIndo(endDate)}`;
-    return `${formatDateIndo(startDate)} s/d ${formatDateIndo(endDate)}`;
+    if (!startDate && endDate) return `s.d. ${formatDateIndo(endDate)}`;
+    if (startDate === endDate) return formatDateIndo(startDate);
+    return `${formatDateIndo(startDate)} s.d. ${formatDateIndo(endDate)}`;
 };
 
 /**
@@ -63,4 +64,19 @@ export const getRoleLabel = (role) => {
         pimpinan: 'Pimpinan',
     };
     return roles[role] || role || '-';
+};
+
+/**
+ * Format a Date or date string to local YYYY-MM-DD string without UTC timezone shift.
+ *
+ * @param {Date|string} [date]
+ * @returns {string}
+ */
+export const formatLocalDate = (date = new Date()) => {
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };

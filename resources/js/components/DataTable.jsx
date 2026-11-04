@@ -9,6 +9,8 @@ export const DataTable = ({
     isLoading = false,
     emptyTitle = 'Tidak Ada Data',
     emptyDescription = 'Belum ada data untuk ditampilkan pada tabel ini.',
+    emptyAction = null,
+    emptyState = null,
     pagination,
     onRowClick,
     keyExtractor = (row, index) => row.id ?? index,
@@ -51,8 +53,9 @@ export const DataTable = ({
                             <tr>
                                 <td colSpan={columns.length} className="p-8">
                                     <EmptyState
-                                        title={emptyTitle}
-                                        description={emptyDescription}
+                                        title={emptyState?.title || emptyTitle}
+                                        description={emptyState?.description || emptyDescription}
+                                        action={emptyState?.action || emptyAction}
                                         className="border-none py-8"
                                     />
                                 </td>
@@ -105,17 +108,20 @@ export const DataTable = ({
             {pagination && pagination.totalPages > 1 && (
                 <div className="px-4 py-3 border-t border-gray-100 bg-gray-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
                     <div>
-                        {pagination.total !== undefined && (
+                        {(pagination.total !== undefined || pagination.totalItems !== undefined) && (
                             <span>
-                                Total <strong>{pagination.total}</strong> data tercatat
+                                Total <strong>{pagination.total ?? pagination.totalItems}</strong> data tercatat
                             </span>
                         )}
                     </div>
                     <div>
                         <Pagination
-                            currentPage={pagination.currentPage}
-                            totalPages={pagination.totalPages}
-                            onPageChange={pagination.onPageChange}
+                            currentPage={pagination.currentPage || 1}
+                            totalPages={pagination.totalPages || 1}
+                            pageSize={pagination.perPage || 15}
+                            pageSizeOptions={pagination.pageSizeOptions || [10, 15, 25, 50]}
+                            onPageChange={pagination.onPageChange || (() => {})}
+                            onPageSizeChange={pagination.onPageSizeChange || (() => {})}
                         />
                     </div>
                 </div>

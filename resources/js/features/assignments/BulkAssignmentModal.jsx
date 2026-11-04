@@ -5,9 +5,12 @@ import {
     TeamSelect,
     TaskSelect,
     BulkAssignmentTable,
+    CustomDatePicker,
+    CustomSelect,
 } from '../../components';
 import { IconUsers, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 import assignmentService from '../../services/assignmentService';
+import { formatLocalDate } from '../../utils/formatters';
 
 export const BulkAssignmentModal = ({
     isOpen,
@@ -22,8 +25,8 @@ export const BulkAssignmentModal = ({
     const [selectedTeamId, setSelectedTeamId] = useState('');
     const [taskId, setTaskId] = useState('');
     const [budgetAccountId, setBudgetAccountId] = useState('');
-    const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
-    const [endDate, setEndDate] = useState(new Date().toISOString().slice(0, 10));
+    const [startDate, setStartDate] = useState(formatLocalDate());
+    const [endDate, setEndDate] = useState(formatLocalDate());
     const [mitraAssignments, setMitraAssignments] = useState([]);
     const [simulation, setSimulation] = useState(null);
     const [simLoading, setSimLoading] = useState(false);
@@ -36,8 +39,8 @@ export const BulkAssignmentModal = ({
             const firstTask = tasks.length > 0 ? tasks[0] : null;
             setTaskId(firstTask ? firstTask.id : '');
             setBudgetAccountId('');
-            setStartDate(new Date().toISOString().slice(0, 10));
-            setEndDate(new Date().toISOString().slice(0, 10));
+            setStartDate(formatLocalDate());
+            setEndDate(formatLocalDate());
             setMitraAssignments([]);
             setSimulation(null);
             setErrors({});
@@ -172,7 +175,7 @@ export const BulkAssignmentModal = ({
             title="Penugasan Kolektif Mitra (Bulk Assignment)"
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     {/* Kegiatan & Parameter Global */}
                     <FormSection
                         title="1. Penentuan Kegiatan & Jadwal Pelaksanaan"
@@ -205,48 +208,42 @@ export const BulkAssignmentModal = ({
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tanggal Mulai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Tanggal Mulai *"
                                     value={startDate}
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => setStartDate(val)}
+                                    placeholder="Pilih tanggal mulai..."
                                     disabled={isLoading}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tanggal Selesai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Tanggal Selesai *"
                                     value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => setEndDate(val)}
+                                    placeholder="Pilih tanggal selesai..."
+                                    minDate={startDate}
                                     disabled={isLoading}
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Akun Anggaran (MAK)
-                                </label>
-                                <select
+                                <CustomSelect
+                                    label="Akun Anggaran (MAK)"
                                     value={budgetAccountId}
-                                    onChange={(e) => setBudgetAccountId(e.target.value)}
-                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onChange={(val) => setBudgetAccountId(val)}
+                                    placeholder="-- Akun Default Kegiatan --"
+                                    options={[
+                                        { value: '', label: '-- Akun Default Kegiatan --' },
+                                        ...budgetAccounts.map((a) => ({
+                                            value: a.id,
+                                            label: `${a.code} — ${a.name}`,
+                                            badge: a.code,
+                                        })),
+                                    ]}
                                     disabled={isLoading}
-                                >
-                                    <option value="">-- Akun Default Kegiatan --</option>
-                                    {budgetAccounts.map((a) => (
-                                        <option key={a.id} value={a.id}>
-                                            {a.code} — {a.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                />
                             </div>
                         </div>
                     </FormSection>

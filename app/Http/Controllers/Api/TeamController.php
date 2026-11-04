@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\StoreTeamRequest;
 use App\Http\Requests\Team\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
+use App\Http\Resources\UserResource;
 use App\Models\Team;
+use App\Models\User;
 use App\Services\TeamService;
 use App\Traits\ApiResponses;
 use Illuminate\Http\JsonResponse;
@@ -94,5 +96,20 @@ class TeamController extends Controller
         $team->loadCount(['users', 'tasks']);
 
         return $this->ok(new TeamResource($team), 'Status tim kerja berhasil dinonaktifkan.');
+    }
+
+    /**
+     * Get list of users (for assigning as team operators).
+     */
+    public function users(): JsonResponse
+    {
+        Gate::authorize('viewAny', Team::class);
+
+        $users = User::with('roles')
+            ->where('is_active', true)
+            ->orderBy('name', 'asc')
+            ->get();
+
+        return $this->ok(UserResource::collection($users), 'Daftar pengguna operator berhasil diambil.');
     }
 }

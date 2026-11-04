@@ -8,9 +8,12 @@ import {
     TeamSelect,
     TaskSelect,
     MitraSelect,
+    CustomDatePicker,
+    CustomSelect,
 } from '../../components';
 import assignmentService from '../../services/assignmentService';
 import spkService from '../../services/spkService';
+import { formatLocalDate, formatDateRange } from '../../utils/formatters';
 
 export const AssignmentFormModal = ({
     isOpen,
@@ -33,8 +36,8 @@ export const AssignmentFormModal = ({
         task_id: '',
         spk_id: '',
         budget_account_id: '',
-        start_date: new Date().toISOString().slice(0, 10),
-        end_date: new Date().toISOString().slice(0, 10),
+        start_date: formatLocalDate(),
+        end_date: formatLocalDate(),
         volume: 1,
         unit: 'Dokumen',
         unit_price: 0,
@@ -56,8 +59,8 @@ export const AssignmentFormModal = ({
                 task_id: assignment.task_id || '',
                 spk_id: assignment.spk_id || '',
                 budget_account_id: assignment.budget_account_id || '',
-                start_date: assignment.start_date || new Date().toISOString().slice(0, 10),
-                end_date: assignment.end_date || new Date().toISOString().slice(0, 10),
+                start_date: assignment.start_date || formatLocalDate(),
+                end_date: assignment.end_date || formatLocalDate(),
                 volume: assignment.volume || 1,
                 unit: assignment.unit_snapshot || assignment.task?.default_unit || 'Dokumen',
                 unit_price: assignment.unit_price || assignment.task?.default_rate || 0,
@@ -71,8 +74,8 @@ export const AssignmentFormModal = ({
                 task_id: tasks.length > 0 ? tasks[0].id : '',
                 spk_id: '',
                 budget_account_id: '',
-                start_date: new Date().toISOString().slice(0, 10),
-                end_date: new Date().toISOString().slice(0, 10),
+                start_date: formatLocalDate(),
+                end_date: formatLocalDate(),
                 volume: 1,
                 unit: 'Dokumen',
                 unit_price: 50000,
@@ -97,7 +100,10 @@ export const AssignmentFormModal = ({
             .getMitraSpks(formData.mitra_id)
             .then((res) => {
                 if (isCurrent) {
-                    setMitraSpks(res.data?.data || []);
+                    const spksList = Array.isArray(res.data)
+                        ? res.data
+                        : (Array.isArray(res) ? res : (res.data?.data || []));
+                    setMitraSpks(spksList);
                     setSpksLoading(false);
                 }
             })
@@ -215,7 +221,7 @@ export const AssignmentFormModal = ({
             title={isEdit ? 'Ubah Data Penugasan Mitra' : 'Tambah Penugasan Mitra Baru'}
         >
             <form onSubmit={handleSubmit} className="flex flex-col">
-                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 space-y-5">
+                <div className="max-h-[72vh] overflow-y-auto px-1 py-2 pb-44 space-y-5">
                     {/* Urutan 1 & 2: Tim & Kegiatan */}
                     <FormSection
                         title="1. Kegiatan & Tim Penanggung Jawab"
@@ -263,29 +269,27 @@ export const AssignmentFormModal = ({
                         />
 
                         <div className="mt-3">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Tautkan ke Dokumen SPK (Opsional)
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Tautkan ke Dokumen SPK (Opsional)"
                                 value={formData.spk_id || ''}
-                                onChange={(e) => setFormData((p) => ({ ...p, spk_id: e.target.value }))}
-                                className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(val) => setFormData((p) => ({ ...p, spk_id: val }))}
+                                placeholder="-- Tanpa SPK (Draf Sementara / Tautkan Nanti) --"
+                                options={[
+                                    { value: '', label: '-- Tanpa SPK (Draf Sementara / Tautkan Nanti) --' },
+                                    ...mitraSpks
+                                        .filter((s) => s.status?.value !== 'cancelled')
+                                        .map((s) => ({
+                                            value: s.id,
+                                            label: s.spk_number,
+                                            subtitle: formatDateRange(s.period_start, s.period_end),
+                                            badge: s.status?.label || s.status?.value,
+                                        })),
+                                ]}
                                 disabled={isLoading || spksLoading || !formData.mitra_id}
-                            >
-                                <option value="">-- Tanpa SPK (Draf Sementara / Tautkan Nanti) --</option>
-                                {mitraSpks
-                                    .filter((s) => s.status?.value !== 'cancelled')
-                                    .map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.spk_number} ({s.period_start} s/d {s.period_end}) — {s.status?.label || s.status?.value}
-                                        </option>
-                                    ))}
-                            </select>
+                                error={errors.spk_id}
+                            />
                             {spksLoading && (
                                 <p className="text-xs text-gray-500 mt-1">Memeriksa dokumen SPK mitra...</p>
-                            )}
-                            {errors.spk_id && (
-                                <p className="text-xs text-red-600 mt-1">{errors.spk_id}</p>
                             )}
                         </div>
                     </FormSection>
@@ -297,39 +301,27 @@ export const AssignmentFormModal = ({
                     >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tanggal Mulai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Tanggal Mulai *"
                                     value={formData.start_date}
-                                    onChange={(e) => setFormData((p) => ({ ...p, start_date: e.target.value }))}
-                                    className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.start_date ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    onChange={(val) => setFormData((p) => ({ ...p, start_date: val }))}
+                                    placeholder="Pilih tanggal mulai..."
+                                    error={errors.start_date}
                                     disabled={isLoading}
                                 />
-                                {errors.start_date && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.start_date}</p>
-                                )}
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Tanggal Selesai *
-                                </label>
-                                <input
-                                    type="date"
+                                <CustomDatePicker
+                                    label="Tanggal Selesai *"
                                     value={formData.end_date}
-                                    onChange={(e) => setFormData((p) => ({ ...p, end_date: e.target.value }))}
-                                    className={`w-full h-10 px-3 py-2 text-sm bg-white border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                                        errors.end_date ? 'border-red-500' : 'border-gray-300'
-                                    }`}
+                                    onChange={(val) => setFormData((p) => ({ ...p, end_date: val }))}
+                                    placeholder="Pilih tanggal selesai..."
+                                    minDate={formData.start_date}
+                                    align="right"
+                                    error={errors.end_date}
                                     disabled={isLoading}
                                 />
-                                {errors.end_date && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.end_date}</p>
-                                )}
                             </div>
                         </div>
                     </FormSection>
@@ -361,10 +353,15 @@ export const AssignmentFormModal = ({
                             </div>
 
                             <div>
-                                <TextField
-                                    label="Satuan Beban"
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Satuan Beban
+                                </label>
+                                <input
+                                    type="text"
                                     value={formData.unit}
-                                    onChange={(val) => setFormData((p) => ({ ...p, unit: val }))}
+                                    onChange={(e) => setFormData((p) => ({ ...p, unit: e.target.value }))}
+                                    placeholder="Contoh: Dokumen"
+                                    className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     disabled={isLoading}
                                 />
                             </div>
@@ -375,31 +372,28 @@ export const AssignmentFormModal = ({
                                     value={formData.unit_price}
                                     onChange={(val) => setFormData((p) => ({ ...p, unit_price: val }))}
                                     disabled={isLoading}
+                                    errorMessage={errors.unit_price}
                                 />
-                                {errors.unit_price && (
-                                    <p className="text-xs text-red-600 mt-1">{errors.unit_price}</p>
-                                )}
                             </div>
                         </div>
 
                         {/* Urutan 8: Akun Anggaran */}
                         <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Akun Anggaran Beban (MAK / DIPA)
-                            </label>
-                            <select
+                            <CustomSelect
+                                label="Akun Anggaran Beban (MAK / DIPA)"
                                 value={formData.budget_account_id}
-                                onChange={(e) => setFormData((p) => ({ ...p, budget_account_id: e.target.value }))}
-                                className="w-full h-10 px-3 py-2 text-sm bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                onChange={(val) => setFormData((p) => ({ ...p, budget_account_id: val }))}
+                                placeholder="-- Gunakan Akun Anggaran Default Kegiatan --"
+                                options={[
+                                    { value: '', label: '-- Gunakan Akun Anggaran Default Kegiatan --' },
+                                    ...budgetAccounts.map((a) => ({
+                                        value: a.id,
+                                        label: `${a.code} — ${a.name}`,
+                                        badge: a.code,
+                                    })),
+                                ]}
                                 disabled={isLoading}
-                            >
-                                <option value="">-- Gunakan Akun Anggaran Default Kegiatan --</option>
-                                {budgetAccounts.map((a) => (
-                                    <option key={a.id} value={a.id}>
-                                        {a.code} — {a.name}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </div>
                     </FormSection>
 

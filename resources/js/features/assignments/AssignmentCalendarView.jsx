@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { LoadingState, ErrorState } from '../../components';
+import { LoadingState, ErrorState, CustomSelect } from '../../components';
 import { Modal, Button } from '@idds/react';
 import {
     IconChevronLeft,
@@ -14,7 +14,7 @@ import {
     IconArrowRight,
 } from '@tabler/icons-react';
 import reportService from '../../services/reportService';
-import { formatRupiah, formatDateRange } from '../../utils/formatters';
+import { formatRupiah, formatDateRange, formatLocalDate } from '../../utils/formatters';
 
 const MONTH_NAMES = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -60,11 +60,13 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                 team_id: filterTeamId || undefined,
                 task_id: filterTaskId || undefined,
             });
-            return res.data;
+            return res.data || res;
         },
     });
 
-    const events = calendarResponse?.data || [];
+    const events = Array.isArray(calendarResponse)
+        ? calendarResponse
+        : (calendarResponse?.data || []);
 
     // Prev / Next month handlers
     const handlePrevMonth = () => {
@@ -141,31 +143,31 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <select
-                        value={filterTeamId}
-                        onChange={(e) => setFilterTeamId(e.target.value)}
-                        className="h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        <option value="">Semua Tim</option>
-                        {teams.map((t) => (
-                            <option key={t.id} value={t.id}>
-                                {t.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-44">
+                        <CustomSelect
+                            size="sm"
+                            value={filterTeamId}
+                            onChange={(val) => setFilterTeamId(val)}
+                            options={[
+                                { value: '', label: 'Semua Tim' },
+                                ...teams.map((t) => ({ value: String(t.id), label: t.name })),
+                            ]}
+                            placeholder="Semua Tim"
+                        />
+                    </div>
 
-                    <select
-                        value={filterTaskId}
-                        onChange={(e) => setFilterTaskId(e.target.value)}
-                        className="h-9 px-2 text-xs bg-white border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-xs truncate"
-                    >
-                        <option value="">Semua Kegiatan</option>
-                        {tasks.map((task) => (
-                            <option key={task.id} value={task.id}>
-                                {task.name}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-56">
+                        <CustomSelect
+                            size="sm"
+                            value={filterTaskId}
+                            onChange={(val) => setFilterTaskId(val)}
+                            options={[
+                                { value: '', label: 'Semua Kegiatan' },
+                                ...tasks.map((task) => ({ value: String(task.id), label: task.name })),
+                            ]}
+                            placeholder="Semua Kegiatan"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -203,7 +205,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
                             }
 
                             const isToday =
-                                cell.dateString === today.toISOString().slice(0, 10);
+                                cell.dateString === formatLocalDate(today);
 
                             // Find events active on this specific date
                             const dayEvents = events.filter((ev) => {
@@ -271,6 +273,7 @@ export const AssignmentCalendarView = ({ teams = [], tasks = [] }) => {
             {/* Event Detail Modal */}
             {selectedEvent && (
                 <Modal
+                    open={Boolean(selectedEvent)}
                     isOpen={Boolean(selectedEvent)}
                     onClose={() => setSelectedEvent(null)}
                     title="Detail Pelaksanaan Tugas"
