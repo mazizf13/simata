@@ -17,9 +17,13 @@ import {
     IconEdit,
     IconUserOff,
     IconFilter,
+    IconUpload,
+    IconDownload,
+    IconFileSpreadsheet,
 } from '@tabler/icons-react';
 import masterDataService from '../../services/masterDataService';
 import MitraFormModal from './MitraFormModal';
+import MitraImportModal from './MitraImportModal';
 
 export const MitrasPage = () => {
     const navigate = useNavigate();
@@ -35,6 +39,8 @@ export const MitrasPage = () => {
     // Modal / Drawer state
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedMitra, setSelectedMitra] = useState(null);
+    const [importModalOpen, setImportModalOpen] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
     const [deactivateDialog, setDeactivateDialog] = useState({
         open: false,
         mitra: null,
@@ -127,6 +133,21 @@ export const MitrasPage = () => {
         await deactivateMutation.mutateAsync(deactivateDialog.mitra.id);
     };
 
+    const handleExportExcel = async () => {
+        try {
+            setIsExporting(true);
+            await masterDataService.exportMitras({
+                search: search.trim() || undefined,
+                district_id: selectedDistrict || undefined,
+                status: selectedStatus || undefined,
+            });
+        } catch (err) {
+            console.error('Gagal mengekspor data mitra:', err);
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     // Columns configuration
     const columns = [
         {
@@ -216,14 +237,33 @@ export const MitrasPage = () => {
                 title="Data Mitra Statistik"
                 subtitle="Master data terpusat mitra survei dan sensus BPS Kabupaten Mojokerto (Kode Wilayah 3516)"
                 actions={
-                    <Button
-                        hierarchy="primary"
-                        size="md"
-                        prefixIcon={<IconUserPlus size={16} />}
-                        onClick={handleOpenCreate}
-                    >
-                        Tambah Mitra
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            hierarchy="secondary"
+                            size="md"
+                            prefixIcon={<IconDownload size={16} />}
+                            onClick={handleExportExcel}
+                            disabled={isExporting}
+                        >
+                            {isExporting ? 'Mengekspor...' : 'Ekspor Excel'}
+                        </Button>
+                        <Button
+                            hierarchy="secondary"
+                            size="md"
+                            prefixIcon={<IconUpload size={16} />}
+                            onClick={() => setImportModalOpen(true)}
+                        >
+                            Impor Excel
+                        </Button>
+                        <Button
+                            hierarchy="primary"
+                            size="md"
+                            prefixIcon={<IconUserPlus size={16} />}
+                            onClick={handleOpenCreate}
+                        >
+                            Tambah Mitra
+                        </Button>
+                    </div>
                 }
             />
 
@@ -325,6 +365,15 @@ export const MitrasPage = () => {
                 districts={districts}
                 onSubmit={handleFormSubmit}
                 isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+
+            {/* Import Excel Modal */}
+            <MitraImportModal
+                isOpen={importModalOpen}
+                onClose={() => setImportModalOpen(false)}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ['mitras'] });
+                }}
             />
 
             {/* Deactivate Confirmation Dialog */}

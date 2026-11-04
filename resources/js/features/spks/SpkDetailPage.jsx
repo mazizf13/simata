@@ -5,6 +5,7 @@ import {
     ContentContainer,
     PageHeader,
     SpkStatusBadge,
+    BastStatusBadge,
     AssignmentStatusBadge,
     LoadingState,
     ErrorState,
@@ -25,11 +26,15 @@ import {
     IconBriefcase,
     IconBuildingBank,
     IconDownload,
+    IconFileCertificate,
+    IconEye,
 } from '@tabler/icons-react';
 import spkService from '../../services/spkService';
+import { bastService } from '../../services/bastService';
 import SpkFormModal from './SpkFormModal';
 import CancelSpkModal from './CancelSpkModal';
 import AttachAssignmentsModal from './AttachAssignmentsModal';
+import { BastFormModal } from '../basts/BastFormModal';
 import { formatDate, formatDateRange, formatRupiah } from '../../utils/formatters';
 import { useAuth } from '../../hooks/useAuth';
 
@@ -47,6 +52,8 @@ export const SpkDetailPage = () => {
     const [confirmCompleteOpen, setConfirmCompleteOpen] = useState(false);
     const [detachTargetAssignment, setDetachTargetAssignment] = useState(null);
     const [downloading, setDownloading] = useState(false);
+    const [createBastModalOpen, setCreateBastModalOpen] = useState(false);
+    const [downloadingBast, setDownloadingBast] = useState(false);
 
     const handleDownloadDocument = async () => {
         try {
@@ -130,6 +137,53 @@ export const SpkDetailPage = () => {
             setDetachTargetAssignment(null);
         },
     });
+
+    // Fetch related BAST
+    const {
+        data: bastResponse,
+        isLoading: isBastLoading,
+        refetch: refetchBast,
+    } = useQuery({
+        queryKey: ['spk', id, 'bast'],
+        queryFn: async () => {
+            try {
+                const res = await bastService.getSpkBast(id);
+                return res.data || res;
+            } catch (err) {
+                return null;
+            }
+        },
+        enabled: Boolean(id),
+    });
+
+    const bast = bastResponse?.data || bastResponse;
+
+    // Create BAST mutation
+    const createBastMutation = useMutation({
+        mutationFn: async (payload) => await bastService.createBast(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['spk', id, 'bast'] });
+            queryClient.invalidateQueries({ queryKey: ['basts'] });
+            setCreateBastModalOpen(false);
+        },
+    });
+
+    const handleDownloadBast = async () => {
+        if (!bast?.id) return;
+        try {
+            setDownloadingBast(true);
+            const cleanBast = bast.bast_number ? bast.bast_number.replace(/[\/\\]/g, '-') : bast.id;
+            const cleanMitra = spk?.mitra?.name ? spk.mitra.name.replace(/\s+/g, '_') : 'Mitra';
+            const defaultFilename = `BAST_${cleanBast}_${cleanMitra}.docx`;
+            await bastService.downloadDocument(bast.id, defaultFilename);
+            refetchBast();
+        } catch (err) {
+            console.error('Gagal mengunduh berkas BAST:', err);
+            alert('Terjadi kesalahan saat memproses atau mengunduh berkas BAST.');
+        } finally {
+            setDownloadingBast(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -399,6 +453,114 @@ export const SpkDetailPage = () => {
                 </div>
             </div>
 
+            {/* BAST (Berita Acara Serah Terima) Section */}
+            <div className="bg-white rounded-lg border border-gray-200 shadow-xs mb-6 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded bg-blue-50 text-blue-700 flex items-center justify-center">
+                            <IconFileCertificate size={18} />
+                        </div>
+                        <div>
+                            <h2 className="text-base font-semibold text-gray-900 leading-tight">
+                                Berita Acara Serah Terima (BAST)
+                            </h2>
+                            <p className="text-xs text-gray-500">
+                                Dokumen serah terima hasil pekerjaan survei/sensus mitra statistik
+                            </p>
+                        </div>
+                    </div>
+
+                    {bast ? (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                hierarchy="secondary"
+                                size="sm"
+                                prefixIcon={<IconDownload size={14} />}
+                                onClick={handleDownloadBast}
+                                disabled={downloadingBast}
+                            >
+                                {downloadingBast ? 'Mengunduh...' : 'Unduh BAST (.docx)'}
+                            </Button>
+                            <Link to={`/app/basts/${bast.id}`}>
+                                <Button
+                                    hierarchy="primary"
+                                    size="sm"
+                                    prefixIcon={<IconEye size={14} />}
+                                >
+                                    Buka Detail BAST
+                                </Button>
+                            </Link>
+                        </div>
+                    ) : (
+                        hasAnyRole(['super_admin', 'admin', 'operator_tim']) && (
+                            <Button
+                                hierarchy="primary"
+                                size="sm"
+                                prefixIcon={<IconPlus size={14} />}
+                                onClick={() => setCreateBastModalOpen(true)}
+                            >
+                                Terbitkan BAST
+                            </Button>
+                        )
+                    )}
+                </div>
+
+                <div className="p-6">
+                    {bast ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
+                                <span className="block text-xs font-medium text-gray-500">Nomor BAST</span>
+                                <Link
+                                    to={`/app/basts/${bast.id}`}
+                                    className="font-semibold text-blue-700 hover:underline font-mono text-sm block mt-0.5"
+                                >
+                                    {bast.bast_number}
+                                </Link>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
+                                <span className="block text-xs font-medium text-gray-500">Tanggal Serah Terima</span>
+                                <span className="font-medium text-gray-900 block mt-0.5">
+                                    {formatDate(bast.bast_date)}
+                                </span>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
+                                <span className="block text-xs font-medium text-gray-500">Status Pengesahan</span>
+                                <div className="mt-1">
+                                    <BastStatusBadge status={bast.status} />
+                                </div>
+                            </div>
+                            <div className="bg-gray-50 p-3 rounded-md border border-gray-100">
+                                <span className="block text-xs font-medium text-gray-500">Arsip Dokumen Word</span>
+                                <span className="text-xs text-gray-600 block mt-1">
+                                    {bast.has_document ? 'Tersimpan di server' : 'Dibuat saat diunduh'}
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gray-50 p-4 rounded-md border border-dashed border-gray-300">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-800">
+                                    BAST Belum Diterbitkan
+                                </h3>
+                                <p className="text-xs text-gray-600 mt-1 max-w-2xl">
+                                    Berita Acara Serah Terima (BAST) mengesahkan penyerahan dan penerimaan hasil survei/sensus mitra statistik (bebas nominal honor). Terbitkan BAST jika kegiatan telah selesai.
+                                </p>
+                            </div>
+                            {hasAnyRole(['super_admin', 'admin', 'operator_tim']) && (
+                                <Button
+                                    hierarchy="secondary"
+                                    size="sm"
+                                    prefixIcon={<IconPlus size={14} />}
+                                    onClick={() => setCreateBastModalOpen(true)}
+                                >
+                                    Buat BAST Sekarang
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Attached Tasks Table */}
             <div className="bg-white rounded-lg border border-gray-200 shadow-xs overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 bg-gray-50/50 flex items-center justify-between">
@@ -593,6 +755,19 @@ export const SpkDetailPage = () => {
                 onConfirm={() => detachMutation.mutate(detachTargetAssignment?.id)}
                 isLoading={detachMutation.isPending}
             />
+
+            {/* Modal Terbitkan BAST */}
+            {createBastModalOpen && (
+                <BastFormModal
+                    isOpen={createBastModalOpen}
+                    onClose={() => setCreateBastModalOpen(false)}
+                    spk={spk}
+                    onSubmit={async (payload) => {
+                        await createBastMutation.mutateAsync(payload);
+                    }}
+                    isLoading={createBastMutation.isPending}
+                />
+            )}
         </ContentContainer>
     );
 };

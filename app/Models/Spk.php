@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Spk extends Model
@@ -67,6 +68,16 @@ class Spk extends Model
     public function taskAssignments(): HasMany
     {
         return $this->hasMany(TaskAssignment::class);
+    }
+
+    /**
+     * Linked BAST for this SPK.
+     *
+     * @return HasOne<Bast>
+     */
+    public function bast(): HasOne
+    {
+        return $this->hasOne(Bast::class);
     }
 
     /**

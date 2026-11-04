@@ -20,6 +20,41 @@ export const masterDataService = {
         await initCsrf();
         return await api.delete(`/mitras/${id}`);
     },
+    downloadMitraTemplate: async () => {
+        const response = await api.get('/mitras/template', {
+            responseType: 'blob',
+        });
+        const url = window.URL.createObjectURL(new Blob([response]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'template_import_mitra_bps3516.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    },
+    exportMitras: async (params = {}) => {
+        const response = await api.get('/mitras/export', {
+            params,
+            responseType: 'blob',
+        });
+        const url = window.URL.createObjectURL(new Blob([response]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `daftar_mitra_statistik_bps3516_${Date.now()}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    },
+    importMitras: async (formData) => {
+        await initCsrf();
+        return await api.post('/mitras/import', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+    },
 
     // === TASKS (KEGIATAN SURVEI) ===
     getNextTaskCode: async (teamId = null) => {

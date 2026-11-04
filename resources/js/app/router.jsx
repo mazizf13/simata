@@ -13,9 +13,12 @@ import TeamsPage from '../features/teams/TeamsPage';
 import TasksPage from '../features/tasks/TasksPage';
 import SpksPage from '../features/spks/SpksPage';
 import SpkDetailPage from '../features/spks/SpkDetailPage';
+import BastsPage from '../features/basts/BastsPage';
+import BastDetailPage from '../features/basts/BastDetailPage';
 import ReportsPage from '../features/reports/ReportsPage';
 import SettingsPage from '../features/settings/SettingsPage';
 import BudgetAccountsPage from '../features/budget-accounts/BudgetAccountsPage';
+import TutorialPage from '../features/tutorial/TutorialPage';
 
 export const AppRouter = () => {
     return (
@@ -40,7 +43,10 @@ export const AppRouter = () => {
                     <Route path="budget-accounts" element={<BudgetAccountsPage />} />
                     <Route path="spks" element={<SpksPage />} />
                     <Route path="spks/:id" element={<SpkDetailPage />} />
+                    <Route path="basts" element={<BastsPage />} />
+                    <Route path="basts/:id" element={<BastDetailPage />} />
                     <Route path="reports" element={<ReportsPage />} />
+                    <Route path="tutorial" element={<TutorialPage />} />
                     <Route path="settings" element={<SettingsPage />} />
                 </Route>
             </Route>

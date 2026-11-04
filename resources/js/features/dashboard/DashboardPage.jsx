@@ -189,7 +189,7 @@ export const DashboardPage = () => {
                         {/* 3. Total Nilai Honor */}
                         <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-xs">
                             <div className="flex items-center justify-between text-gray-500 mb-2">
-                                <span className="text-xs font-semibold uppercase tracking-wider">Total Nilai Honor</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Total Honor</span>
                                 <div className="p-1.5 bg-emerald-50 text-emerald-700 rounded">
                                     <IconCash size={16} />
                                 </div>

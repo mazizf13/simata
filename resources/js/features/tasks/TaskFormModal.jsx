@@ -15,6 +15,9 @@ export const TaskFormModal = ({
 }) => {
     const isEdit = Boolean(task);
 
+    const safeTeams = Array.isArray(teams) ? teams : (Array.isArray(teams?.data) ? teams.data : []);
+    const safeBudgetAccounts = Array.isArray(budgetAccounts) ? budgetAccounts : (Array.isArray(budgetAccounts?.data) ? budgetAccounts.data : []);
+
     const [formData, setFormData] = useState({
         code: '',
         name: '',
@@ -40,14 +43,14 @@ export const TaskFormModal = ({
             }
         } catch (err) {
             console.warn('Gagal mengambil kode kegiatan otomatis:', err);
-            const selectedTeam = teams.find((t) => Number(t.id) === Number(targetTeamId));
+            const selectedTeam = safeTeams.find((t) => Number(t.id) === Number(targetTeamId));
             const teamCode = selectedTeam ? selectedTeam.code.toUpperCase() : 'BPS';
             const year = new Date().getFullYear();
             setFormData((prev) => ({ ...prev, code: `SURV-${teamCode}-${year}-01` }));
         } finally {
             setIsGeneratingCode(false);
         }
-    }, [teams]);
+    }, [safeTeams]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -64,14 +67,14 @@ export const TaskFormModal = ({
                 is_active: typeof task.is_active === 'boolean' ? task.is_active : true,
             });
         } else {
-            const defaultTeamId = teams.length > 0 ? teams[0].id : '';
+            const defaultTeamId = safeTeams.length > 0 ? safeTeams[0].id : '';
             setFormData({
                 code: '',
                 name: '',
                 team_id: defaultTeamId,
                 default_unit: 'Dokumen',
                 default_rate: 50000,
-                default_budget_account_id: budgetAccounts.length > 0 ? budgetAccounts[0].id : '',
+                default_budget_account_id: safeBudgetAccounts.length > 0 ? safeBudgetAccounts[0].id : '',
                 description: '',
                 is_active: true,
             });
@@ -191,7 +194,7 @@ export const TaskFormModal = ({
                                 placeholder="-- Pilih Tim Kerja --"
                                 options={[
                                     { value: '', label: '-- Pilih Tim Kerja --' },
-                                    ...teams.map((t) => ({
+                                    ...safeTeams.map((t) => ({
                                         value: t.id,
                                         label: `[${t.code}] ${t.name}`,
                                         badge: t.code,
@@ -251,7 +254,7 @@ export const TaskFormModal = ({
                                 placeholder="-- Tanpa Akun Anggaran Default --"
                                 options={[
                                     { value: '', label: '-- Tanpa Akun Anggaran Default --' },
-                                    ...budgetAccounts.map((a) => ({
+                                    ...safeBudgetAccounts.map((a) => ({
                                         value: a.id,
                                         label: `${a.code} — ${a.name}`,
                                         badge: a.code,

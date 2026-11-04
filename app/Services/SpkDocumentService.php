@@ -138,11 +138,9 @@ class SpkDocumentService
      */
     public function download(Spk $spk): StreamedResponse
     {
-        // Jika dokumen belum pernah di-generate atau file terhapus, generate baru
-        if (!$spk->document_path || !Storage::disk('local')->exists($spk->document_path)) {
-            $this->generate($spk);
-            $spk->refresh();
-        }
+        // Selalu generate ulang berkas agar menggunakan versi template dan data terbaru
+        $this->generate($spk);
+        $spk->refresh();
 
         // Format nama berkas unduhan yang rapi:
         // Contoh: SPK_001-3516-SPK.48-IX-2026_Zakia_Indira_Syahda.docx

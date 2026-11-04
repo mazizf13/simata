@@ -5,8 +5,11 @@ export const PageHeader = ({
     subtitle,
     breadcrumb,
     actions,
+    action,
     className = '',
 }) => {
+    const renderedActions = actions || action;
+
     return (
         <div className={`mb-6 ${className}`}>
             {breadcrumb && <div className="mb-2">{breadcrumb}</div>}
@@ -21,9 +24,9 @@ export const PageHeader = ({
                         </p>
                     )}
                 </div>
-                {actions && (
+                {renderedActions && (
                     <div className="flex items-center gap-3 shrink-0">
-                        {actions}
+                        {renderedActions}
                     </div>
                 )}
             </div>

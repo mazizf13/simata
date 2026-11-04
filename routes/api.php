@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BastController;
 use App\Http\Controllers\Api\BudgetAccountController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\DistrictController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\Api\SpkController;
 use App\Http\Controllers\Api\TaskAssignmentController;
 use App\Http\Controllers\Api\TaskController;
 use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\UserController;
 use App\Http\Responses\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -41,6 +43,9 @@ Route::prefix('auth')->group(function () {
 // Master Data & Protected Business Routes
 Route::middleware('auth:sanctum')->group(function () {
     // Mitra Statistik
+    Route::get('/mitras/template', [MitraController::class, 'downloadTemplate']);
+    Route::get('/mitras/export', [MitraController::class, 'export']);
+    Route::post('/mitras/import', [MitraController::class, 'import']);
     Route::get('/mitras', [MitraController::class, 'index']);
     Route::post('/mitras', [MitraController::class, 'store']);
     Route::get('/mitras/{id}', [MitraController::class, 'show']);
@@ -61,13 +66,21 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tim Kerja / Teams
     Route::get('/teams/active', [TeamController::class, 'active']);
     Route::get('/teams/users', [TeamController::class, 'users']);
-    Route::get('/users', [TeamController::class, 'users']);
     Route::get('/teams', [TeamController::class, 'index']);
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{id}', [TeamController::class, 'show']);
     Route::put('/teams/{id}', [TeamController::class, 'update']);
     Route::delete('/teams/{id}', [TeamController::class, 'deactivate']);
     Route::post('/teams/{id}/deactivate', [TeamController::class, 'deactivate']);
+
+    // Manajemen Pengguna Pegawai (Users & Roles)
+    Route::get('/users/roles', [UserController::class, 'roles']);
+    Route::get('/users', [UserController::class, 'index']);
+    Route::post('/users', [UserController::class, 'store']);
+    Route::get('/users/{id}', [UserController::class, 'show']);
+    Route::put('/users/{id}', [UserController::class, 'update']);
+    Route::delete('/users/{id}', [UserController::class, 'deactivate']);
+    Route::post('/users/{id}/deactivate', [UserController::class, 'deactivate']);
 
     // Akun Anggaran / Budget Accounts
     Route::get('/budget-accounts/active', [BudgetAccountController::class, 'active']);
@@ -115,6 +128,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/spks/{id}/attach-assignments', [SpkController::class, 'attachAssignments']);
     Route::post('/spks/{id}/detach-assignment/{assignmentId}', [SpkController::class, 'detachAssignment']);
     Route::get('/mitras/{id}/spks', [SpkController::class, 'byMitra']);
+    Route::get('/spks/{id}/bast', [BastController::class, 'bySpk']);
+
+    // Berita Acara Serah Terima / BAST
+    Route::get('/basts/next-number', [BastController::class, 'nextNumber']);
+    Route::get('/basts', [BastController::class, 'index']);
+    Route::post('/basts', [BastController::class, 'store']);
+    Route::get('/basts/{id}', [BastController::class, 'show']);
+    Route::put('/basts/{id}', [BastController::class, 'update']);
+    Route::post('/basts/{id}/approve', [BastController::class, 'approve']);
+    Route::post('/basts/{id}/generate-document', [BastController::class, 'generateDocument']);
+    Route::get('/basts/{id}/download-document', [BastController::class, 'downloadDocument']);
 
     // Dashboard Analytics (Phase 5)
     Route::get('/dashboard', [DashboardController::class, 'index']);

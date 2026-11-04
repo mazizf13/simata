@@ -93,7 +93,7 @@ class TaskAssignmentController extends Controller
     public function show(int|string $id): JsonResponse
     {
         /** @var TaskAssignment $assignment */
-        $assignment = TaskAssignment::with(['mitra.district', 'task.team', 'budgetAccount', 'creator', 'approver', 'canceller'])
+        $assignment = TaskAssignment::with(['mitra.district', 'task.team', 'budgetAccount', 'creator', 'approver', 'canceller', 'spk'])
             ->findOrFail($id);
 
         Gate::authorize('view', $assignment);

@@ -41,19 +41,19 @@ export const TasksPage = () => {
         queryKey: ['teams', 'active'],
         queryFn: async () => {
             const res = await masterDataService.getActiveTeams();
-            return res.data || [];
+            return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         },
     });
-    const teams = teamsData || [];
+    const teams = Array.isArray(teamsData) ? teamsData : (Array.isArray(teamsData?.data) ? teamsData.data : []);
 
     const { data: accountsData } = useQuery({
         queryKey: ['budget-accounts', 'active'],
         queryFn: async () => {
             const res = await masterDataService.getActiveBudgetAccounts();
-            return res.data || [];
+            return Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         },
     });
-    const budgetAccounts = accountsData || [];
+    const budgetAccounts = Array.isArray(accountsData) ? accountsData : (Array.isArray(accountsData?.data) ? accountsData.data : []);
 
     // Fetch tasks
     const {
